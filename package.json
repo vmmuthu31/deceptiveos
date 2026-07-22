@@ -1,0 +1,29 @@
+{
+  "name": "ciphernest",
+  "version": "0.1.0",
+  "description": "Indigenous Cyber Deception Framework",
+  "license": "AGPL-3.0-or-later",
+  "private": true,
+  "workspaces": [
+    "electron",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=electron\"",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=electron",
+    "build:rust": "cd rust && cargo build --release",
+    "build:rust:dev": "cd rust && cargo build",
+    "dev:rust": "cd rust && cargo watch -s 'cargo run'",
+    "lint": "npm run lint --workspace=frontend && cd rust && cargo clippy",
+    "test": "npm run test --workspace=frontend && cd rust && cargo test",
+    "package": "npm run build && npm run package --workspace=electron",
+    "clean": "cd rust && cargo clean && rm -rf electron/dist frontend/dist node_modules/.cache"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=22",
+    "rust": ">=1.85"
+  }
+}
