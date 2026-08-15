@@ -1,30 +1,37 @@
 {
   "name": "ciphernest",
-  "version": "0.1.0",
-  "description": "Indigenous Cyber Deception Framework",
-  "license": "AGPL-3.0-or-later",
+  "version": "0.2.0",
+  "description": "Adversarial AI Defense Engine — AI-Native Cyber Deception Platform",
   "private": true,
-  "workspaces": [
-    "electron",
-    "frontend"
-  ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=electron\"",
-    "build": "npm run build --workspace=frontend && npm run build --workspace=electron",
-    "build:rust": "cd rust && cargo build --release",
-    "build:rust:dev": "cd rust && cargo build",
-    "dev:rust": "cd rust && cargo watch -s 'cargo run'",
-    "lint": "npm run lint --workspace=frontend && cd rust && cargo clippy",
-    "test": "npm run test --workspace=frontend && cd rust && cargo test",
-    "package": "npm run build && npm run package --workspace=electron",
-    "clean": "cd rust && cargo clean && rm -rf electron/dist frontend/dist node_modules/.cache"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "clean": "rm -rf .next node_modules"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.4.0",
+    "lucide-react": "^0.475.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.0.1",
+    "class-variance-authority": "^0.7.1",
+    "zod": "^3.24.2",
+    "framer-motion": "^12.4.7",
+    "recharts": "^2.15.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
-    "concurrently": "^9.1.0"
-  },
-  "engines": {
-    "node": ">=22",
-    "rust": ">=1.85"
+    "@types/node": "^22.13.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "typescript": "^5.7.3",
+    "tailwindcss": "^4.0.7",
+    "@tailwindcss/postcss": "^4.0.7",
+    "postcss": "^8.5.2",
+    "eslint": "^9.20.1",
+    "eslint-config-next": "^15.1.0"
   }
 }
