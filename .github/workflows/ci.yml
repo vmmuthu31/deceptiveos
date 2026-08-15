@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: auto
+  CARGO_NET_OFFLINE: true
+
+jobs:
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
+
+      - name: Check formatting
+        run: cd rust && cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cd rust && cargo clippy --all-targets -- -D warnings
+
+      - name: Run tests
+        run: cd rust && cargo test --all
+
+      - name: Build release
+        run: cd rust && cargo build --release
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --workspace=frontend
+
+      - name: Build
+        run: npm run build --workspace=frontend
+
+      - name: Run tests
+        run: npm run test --workspace=frontend
+
+  electron:
+    name: Electron
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build --workspace=frontend
+
+      - name: Build Rust backend
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.os == 'windows-latest' && 'x86_64-pc-windows-msvc' || (matrix.os == 'macos-latest' && 'x86_64-apple-darwin' || 'x86_64-unknown-linux-gnu') }}
+
+      - name: Build Electron
+        run: npm run build --workspace=electron
+
+      - name: Package Electron
+        run: npm run package --workspace=electron
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ciphernest-${{ matrix.os }}
+          path: electron/dist/
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust audit
+        uses: rustsec/audit-ci-action@v2.7.6
+        with:
+          cwd: rust
+
+      - name: Node.js audit
+        run: npm audit --audit-level=moderate

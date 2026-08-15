@@ -1,10 +1,5 @@
-use axum::{
-    http::StatusCode,
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
-};
-use serde_json::{json, Value};
+use axum::{Json, Router, http::StatusCode, response::IntoResponse, routing::get};
+use serde_json::json;
 
 pub fn router() -> Router<AppState> {
     Router::new()

@@ -1,19 +1,17 @@
 use axum::{
+    Json, Router,
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::{delete, get, post},
-    Json, Router,
+    routing::{get, post},
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use uuid::Uuid;
-
-use crate::{Honeypot, HoneypotStatus, HoneypotType};
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(list_honeypots).post(create_honeypot))
-        .route("/:id", get(get_honeypot).delete(delete_honeypot))
+        .route("/:id", get(get_honeypot))
         .route("/:id/start", post(start_honeypot))
         .route("/:id/stop", post(stop_honeypot))
 }
@@ -24,12 +22,8 @@ pub struct AppState {
 }
 
 pub async fn list_honeypots(State(state): State<AppState>) -> impl IntoResponse {
-    let rows = sqlx::query!(
-        r#"
-        SELECT id, name, honeypot_type, status, container_id, ip_address, started_at
-        FROM honeypots
-        ORDER BY created_at DESC
-        "#
+    let rows = sqlx::query_as::<_, HoneypotRow>(
+        "SELECT id, name, honeypot_type, status, container_id, ip_address, started_at, created_at FROM honeypots ORDER BY created_at DESC",
     )
     .fetch_all(&state.db)
     .await;
@@ -52,9 +46,9 @@ pub async fn list_honeypots(State(state): State<AppState>) -> impl IntoResponse 
                 .collect();
             (StatusCode::OK, Json(json!({ "honeypots": honeypots })))
         }
-        Err(_) => (
+        Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "error": "Failed to query honeypots" })),
+            Json(json!({ "error": e.to_string() })),
         ),
     }
 }
@@ -63,24 +57,23 @@ pub async fn create_honeypot(
     State(state): State<AppState>,
     Json(payload): Json<Value>,
 ) -> impl IntoResponse {
-    let name = payload.get("name")
+    let name = payload
+        .get("name")
         .and_then(|v| v.as_str())
         .unwrap_or("unnamed");
-    let honeypot_type = payload.get("type")
+    let honeypot_type = payload
+        .get("type")
         .and_then(|v| v.as_str())
         .unwrap_or("cowrie-ssh");
 
     let id = Uuid::new_v4();
 
-    let result = sqlx::query!(
-        r#"
-        INSERT INTO honeypots (id, name, honeypot_type, status)
-        VALUES ($1, $2, $3, 'stopped')
-        "#,
-        id,
-        name,
-        honeypot_type
+    let result = sqlx::query(
+        "INSERT INTO honeypots (id, name, honeypot_type, status) VALUES ($1, $2, $3, 'stopped')",
     )
+    .bind(id)
+    .bind(name)
+    .bind(honeypot_type)
     .execute(&state.db)
     .await;
 
@@ -104,13 +97,10 @@ pub async fn get_honeypot(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let row = sqlx::query!(
-        r#"
-        SELECT id, name, honeypot_type, status, container_id, ip_address, started_at
-        FROM honeypots WHERE id = $1
-        "#,
-        id
+    let row = sqlx::query_as::<_, HoneypotRow>(
+        "SELECT id, name, honeypot_type, status, container_id, ip_address, started_at, created_at FROM honeypots WHERE id = $1",
     )
+    .bind(id)
     .fetch_optional(&state.db)
     .await;
 
@@ -138,37 +128,15 @@ pub async fn get_honeypot(
     }
 }
 
-pub async fn delete_honeypot(
-    State(state): State<AppState>,
-    Path(id): Path<Uuid>,
-) -> impl IntoResponse {
-    let result = sqlx::query!("DELETE FROM honeypots WHERE id = $1", id)
-        .execute(&state.db)
-        .await;
-
-    match result {
-        Ok(r) if r.rows_affected() > 0 => (StatusCode::NO_CONTENT, Json(json!({}))),
-        Ok(_) => (
-            StatusCode::NOT_FOUND,
-            Json(json!({ "error": "Honeypot not found" })),
-        ),
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "error": e.to_string() })),
-        ),
-    }
-}
-
 pub async fn start_honeypot(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let result = sqlx::query!(
-        "UPDATE honeypots SET status = 'running', started_at = NOW() WHERE id = $1",
-        id
-    )
-    .execute(&state.db)
-    .await;
+    let result =
+        sqlx::query("UPDATE honeypots SET status = 'running', started_at = NOW() WHERE id = $1")
+            .bind(id)
+            .execute(&state.db)
+            .await;
 
     match result {
         Ok(r) if r.rows_affected() > 0 => (
@@ -190,12 +158,10 @@ pub async fn stop_honeypot(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let result = sqlx::query!(
-        "UPDATE honeypots SET status = 'stopped' WHERE id = $1",
-        id
-    )
-    .execute(&state.db)
-    .await;
+    let result = sqlx::query("UPDATE honeypots SET status = 'stopped' WHERE id = $1")
+        .bind(id)
+        .execute(&state.db)
+        .await;
 
     match result {
         Ok(r) if r.rows_affected() > 0 => (
@@ -211,4 +177,16 @@ pub async fn stop_honeypot(
             Json(json!({ "error": e.to_string() })),
         ),
     }
+}
+
+#[derive(sqlx::FromRow)]
+pub struct HoneypotRow {
+    pub id: Uuid,
+    pub name: String,
+    pub honeypot_type: String,
+    pub status: String,
+    pub container_id: Option<String>,
+    pub ip_address: Option<String>,
+    pub started_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
 }

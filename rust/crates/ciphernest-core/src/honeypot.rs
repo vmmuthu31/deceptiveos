@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::HoneypotProfile;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Honeypot {
     pub id: Uuid,

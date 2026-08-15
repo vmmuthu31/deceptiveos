@@ -8,4 +8,7 @@ pub use config::Config;
 pub use error::{Error, Result};
 pub use event::{Event, EventKind, SessionEvent};
 pub use honeypot::{Honeypot, HoneypotStatus, HoneypotType};
-pub use profile::HoneypotProfile;
+pub use profile::{
+    Credential, FakeFile, HoneypotProfile, Lure, LureTrigger, LureType, PortMapping, ServiceConfig,
+    VolumeMapping,
+};

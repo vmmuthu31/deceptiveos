@@ -1,13 +1,8 @@
-use axum::{
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, post},
-    Json, Router,
-};
+use axum::{Json, Router, http::StatusCode, response::IntoResponse, routing::get};
 use chrono::Utc;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::net::SocketAddr;
-use tracing::{info, Level};
+use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -21,8 +16,14 @@ async fn main() -> anyhow::Result<()> {
         .route("/", get(root_handler))
         .route("/health", get(health_handler))
         .route("/api/v1/status", get(status_handler))
-        .route("/api/v1/honeypots", get(list_honeypots).post(create_honeypot))
-        .route("/api/v1/honeypots/:id", get(get_honeypot).delete(delete_honeypot))
+        .route(
+            "/api/v1/honeypots",
+            get(list_honeypots).post(create_honeypot),
+        )
+        .route(
+            "/api/v1/honeypots/:id",
+            get(get_honeypot).delete(delete_honeypot),
+        )
         .route("/api/v1/events", get(list_events))
         .route("/api/v1/alerts", get(list_alerts));
 
@@ -94,7 +95,7 @@ async fn list_honeypots() -> impl IntoResponse {
     )
 }
 
-async fn create_honeypot(Json(payload): Json<Value>) -> impl IntoResponse {
+async fn create_honeypot(Json(_payload): Json<Value>) -> impl IntoResponse {
     (
         StatusCode::CREATED,
         Json(json!({
@@ -106,7 +107,7 @@ async fn create_honeypot(Json(payload): Json<Value>) -> impl IntoResponse {
 }
 
 async fn get_honeypot(path: axum::extract::Path<String>) -> impl IntoResponse {
-    let id = path.into_inner();
+    let id: String = path.0;
     (
         StatusCode::OK,
         Json(json!({
@@ -118,7 +119,7 @@ async fn get_honeypot(path: axum::extract::Path<String>) -> impl IntoResponse {
 }
 
 async fn delete_honeypot(path: axum::extract::Path<String>) -> impl IntoResponse {
-    let _id = path.into_inner();
+    let _id: String = path.0;
     (StatusCode::NO_CONTENT, Json(json!({})))
 }
 

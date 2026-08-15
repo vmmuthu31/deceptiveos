@@ -21,7 +21,7 @@ repository = "https://github.com/ciphernest/ciphernest"
 axum = "0.8"
 tokio = { version = "1", features = ["full"] }
 tower = "0.5"
-tower-http = { version = "0.6", features = ["trace", "cors", "compression"] }
+tower-http = { version = "0.6", features = ["trace", "cors", "compression-br", "compression-gzip", "compression-zstd"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -32,12 +32,12 @@ sqlx = { version = "0.8", features = ["postgres", "runtime-tokio", "chrono", "uu
 redis = { version = "0.27", features = ["tokio-comp"] }
 
 # ML/AI
-linfa = "0.5"
-burn = { version = "0.16", features = ["wgpu"] }
+linfa = "0.8"
+# burn = { version = "0.15", features = ["wgpu"] }  # Temporarily disabled - bincode compatibility issue
 
 # Integration
-stix2 = "0.3"
-reqwest = { version = "0.22", features = ["json", "stream"] }
+stix2 = "0.1"
+reqwest = { version = "0.12", features = ["json", "stream"] }
 
 # Utilities
 uuid = { version = "1", features = ["v4", "v7"] }

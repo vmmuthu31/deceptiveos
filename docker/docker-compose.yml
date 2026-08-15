@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ciphernest
+      POSTGRES_USER: ciphernest
+      POSTGRES_PASSWORD: ciphernest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # Honeypots
+  cowrie:
+    image: cowrie/cowrie:latest
+    depends_on:
+      - postgres
+    volumes:
+      - ./docker/cowrie/cowrie.cfg:/cowrie/cowrie.cfg:ro
+      - cowrie_data:/cowrie/cowrie-data
+    networks:
+      deception:
+        ipv4_address: 172.20.0.10
+    restart: unless-stopped
+
+  dionaea:
+    image: phalanxarmy/dionaea:latest
+    volumes:
+      - ./docker/dionaea/dionaea.conf:/etc/dionaea/dionaea.conf:ro
+      - dionaea_data:/var/dionaea
+    networks:
+      deception:
+        ipv4_address: 172.20.0.11
+    restart: unless-stopped
+
+  # Optional: Ollama for LLM-powered deception
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+
+networks:
+  deception:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+volumes:
+  postgres_data:
+  cowrie_data:
+  dionaea_data:
+  ollama_data:

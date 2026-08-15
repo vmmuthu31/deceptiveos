@@ -13,3 +13,9 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 sqlx = { workspace = true }
 redis = { workspace = true }
+toml = "0.8"
+reqwest = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+tracing-subscriber = { workspace = true }

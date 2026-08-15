@@ -1,5 +1,6 @@
-use napi::bindgen_prelude::*;
+use napi_derive::napi;
 use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 #[napi]
 pub fn hash_sha256(input: String) -> String {
@@ -10,21 +11,13 @@ pub fn hash_sha256(input: String) -> String {
 }
 
 #[napi]
-pub fn hash_sha256_bytes(input: Buffer) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(input.as_ref());
-    let result = hasher.finalize();
-    format!("{:x}", result)
-}
-
-#[napi]
 pub fn generate_session_id() -> String {
-    uuid::Uuid::new_v4().to_string()
+    Uuid::new_v4().to_string()
 }
 
 #[napi]
 pub fn generate_honeypot_id() -> String {
-    uuid::Uuid::new_v4().to_string()
+    Uuid::new_v4().to_string()
 }
 
 #[napi]

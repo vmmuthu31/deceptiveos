@@ -1,10 +1,10 @@
 use axum::{
+    Json, Router,
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -44,7 +44,7 @@ pub async fn generate_sigma_rule(Json(_payload): Json<Value>) -> impl IntoRespon
                 },
                 "detection": {
                     "selection": {
-                        "event_id": "601
+                        "event_id": "601"
                     },
                     "condition": "selection"
                 }

@@ -20,6 +20,7 @@
     "clean": "cd rust && cargo clean && rm -rf electron/dist frontend/dist node_modules/.cache"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "concurrently": "^9.1.0"
   },
   "engines": {
