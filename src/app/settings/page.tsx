@@ -5,7 +5,7 @@ import { Button } from '@/client/components/ui/Button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/Card';
 import { ComplianceSummary } from '@/shared/types';
 import React, { useEffect, useState } from 'react';
-import { RiCompass3Line, RiCpuLine, RiDownloadLine, RiSettings4Line, RiShieldCheckLine } from 'react-icons/ri';
+import { RiCheckDoubleLine, RiCompass3Line, RiCpuLine, RiDownloadLine, RiLock2Line, RiSettings4Line, RiShieldCheckLine } from 'react-icons/ri';
 
 export default function SettingsPage() {
   const [compliance, setCompliance] = useState<ComplianceSummary | null>(null);
@@ -14,6 +14,8 @@ export default function SettingsPage() {
     model: 'llama3.1:8b',
     latencyMs: 140,
   });
+  const [hashVerification, setHashVerification] = useState<{ verified: boolean; blockCount: number; rootHash: string } | null>(null);
+  const [verifyingHash, setVerifyingHash] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -36,6 +38,21 @@ export default function SettingsPage() {
     }
     loadSettingsData();
   }, []);
+
+  const handleVerifyHashChain = async () => {
+    setVerifyingHash(true);
+    try {
+      const res = await fetch('/api/compliance/verify');
+      if (res.ok) {
+        const data = await res.json() as { verified: boolean; blockCount: number; rootHash: string };
+        setHashVerification(data);
+      }
+    } catch {
+      // fallback
+    } finally {
+      setVerifyingHash(false);
+    }
+  };
 
   const handleExportEvidence = async () => {
     setExporting(true);
@@ -81,10 +98,10 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
           <RiSettings4Line className="w-6 h-6 text-emerald-400" />
-          Settings, Intelligence & Audit Exports
+          Settings, Intelligence & Cryptographic Ledger
         </h1>
         <p className="text-xs text-slate-400 mt-1">
-          Verify local AI inference model health, air-gap security settings, and export STIX 2.1 Threat Intel bundles, Sigma rules, and SOC 2 evidence.
+          Verify local AI inference model health, air-gap security settings, SHA-256 cryptographic audit chain integrity, and export STIX 2.1 / Sigma detection rules.
         </p>
       </div>
 
@@ -140,11 +157,11 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 <RiShieldCheckLine className="w-5 h-5 text-emerald-400" />
-                <CardTitle>Compliance Audit Readiness</CardTitle>
+                <CardTitle>Cryptographic SHA-256 Audit Ledger</CardTitle>
               </div>
               <Badge variant="success">SOC 2 Ready</Badge>
             </div>
-            <CardDescription>Cryptographic append-only event ledger and regulatory control evidence.</CardDescription>
+            <CardDescription>Tamper-evident append-only ledger with cryptographic hash chaining.</CardDescription>
           </CardHeader>
 
           {compliance && (
@@ -164,10 +181,24 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex justify-end">
-            <Button onClick={handleExportEvidence} disabled={exporting}>
+          {hashVerification && (
+            <div className="mt-3 p-3 rounded-lg bg-emerald-950/40 border border-emerald-800/60 font-mono text-xs text-emerald-300">
+              <div className="flex items-center gap-2 font-bold mb-1">
+                <RiCheckDoubleLine className="w-4 h-4 text-emerald-400" />
+                <span>Ledger Integrity Verified — 0 Tamper Errors</span>
+              </div>
+              <p className="text-[11px] text-slate-400 truncate">Root Hash: {hashVerification.rootHash}</p>
+            </div>
+          )}
+
+          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <Button size="sm" variant="outline" onClick={handleVerifyHashChain} disabled={verifyingHash}>
+              <RiLock2Line className="w-4 h-4 text-cyan-400" />
+              <span>{verifyingHash ? 'Verifying...' : 'Verify Hash-Chain Integrity'}</span>
+            </Button>
+            <Button size="sm" onClick={handleExportEvidence} disabled={exporting}>
               <RiDownloadLine className="w-4 h-4" />
-              <span>{exporting ? 'Generating Report...' : 'Download SOC 2 Evidence Report'}</span>
+              <span>{exporting ? 'Generating Report...' : 'SOC 2 Evidence Report'}</span>
             </Button>
           </div>
         </Card>

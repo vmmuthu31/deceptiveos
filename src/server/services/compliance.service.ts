@@ -1,28 +1,36 @@
+import { readDb, verifyAuditChain } from '@/server/db/database';
 import { ComplianceSummary } from '@/shared/types';
 
 export async function getComplianceSummary(): Promise<ComplianceSummary> {
+  const { verified, blockCount } = verifyAuditChain();
+
   return {
-    soc2Score: 98,
-    iso27001Score: 95,
-    gdprStatus: 'Compliant',
-    immutableAuditLogHeight: 18492,
-    lastAuditExportAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+    soc2Score: verified ? 100 : 75,
+    iso27001Score: verified ? 98 : 70,
+    gdprStatus: verified ? 'Compliant' : 'Review Needed',
+    immutableAuditLogHeight: blockCount,
+    lastAuditExportAt: new Date().toISOString(),
   };
 }
 
 export async function generateCompliancePDFContent(): Promise<string> {
+  const db = readDb();
+  const verification = verifyAuditChain();
+  const latestBlock = db.auditLedger[db.auditLedger.length - 1];
+
   return `================================================================================
 CIPHERNEST ADVERSARIAL DECEPTION ENGINE — COMPLIANCE EVIDENCE REPORT
 ================================================================================
-Generated At: ${new Date().toISOString()}
-Security Standards Evaluated: SOC 2 Type II, ISO 27001:2022 Annex A, GDPR Art. 32
+Report Generation Timestamp: ${new Date().toISOString()}
+Security Framework Target: SOC 2 Type II, ISO 27001:2022 Annex A, GDPR Art. 32
 
-1. IMMUTABLE AUDIT TRAIL LOG
+1. CRYPTOGRAPHIC AUDIT TRAIL VERIFICATION (TAMPER-EVIDENT LEDGER)
    -----------------------------------------------------------------------------
-   Status: ACTIVE (Hash-Chained Cryptographic Ledger)
-   Current Block Height: 18,492
-   Root Hash: 0x9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a
-   Storage Location: Encrypted Append-Only PostgreSQL Table (AES-256)
+   Ledger Integrity Verification: ${verification.verified ? 'VALIDATED (0 Tampering Errors)' : 'FAILED'}
+   Total Block Height: ${verification.blockCount} Blocks
+   Latest Root Hash: ${verification.rootHash}
+   Genesis Block Hash: ${db.auditLedger[0]?.blockHash || 'N/A'}
+   Latest Action Logged: ${latestBlock?.action || 'NONE'} (${latestBlock?.timestamp || 'N/A'})
 
 2. DATA MINIMIZATION & AIR-GAP PROOF (GDPR & FEDRAMP)
    -----------------------------------------------------------------------------
@@ -38,6 +46,6 @@ Security Standards Evaluated: SOC 2 Type II, ISO 27001:2022 Annex A, GDPR Art. 3
    ISO 27001 A.14.2.5 (System Security Principles): Passed — Zero host privilege
 
 ================================================================================
-END OF REPORT — VERIFIED BY CIPHERNEST LOCAL COMPLIANCE ENGINE
+END OF REPORT — VERIFIED BY CIPHERNEST CRYPTOGRAPHIC AUDIT LEDGER
 ================================================================================`;
 }

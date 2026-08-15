@@ -1,4 +1,4 @@
-import { readDb, writeDb } from '@/server/db/database';
+import { appendAuditBlock, readDb, writeDb } from '@/server/db/database';
 import { BeaconEvent, LureDocument, WatermarkToken } from '@/shared/types';
 import { generateWatermarkSignature } from '@/shared/utils/formatters';
 import { generateSemanticLureDocument } from './ai.service';
@@ -35,17 +35,37 @@ export async function createLureDocument(data: {
 
   const rawContent = await generateSemanticLureDocument(data.docType, data.targetCompany, data.industry);
 
-  // Real steganographic watermark embedding with zero-width whitespace signature & metadata
   let watermarkedContent = '';
-  if (data.docType === 'JSON') {
+
+  if (data.docType === 'PDF') {
+    // Generate authentic HTML/PDF container format with pixel canary tracking tag
+    watermarkedContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${data.title}</title>
+  <!-- Steganographic Watermark Tag: ${watermark.metadataTag} ${watermark.stegoWhitespaceSignature} -->
+</head>
+<body style="font-family: Arial, sans-serif; padding: 40px; color: #1e293b;">
+  <h1 style="color: #0f172a; border-bottom: 2px solid #0284c7;">${data.targetCompany.toUpperCase()} — CONFIDENTIAL EXECUTIVE BRIEF</h1>
+  <p style="color: #ef4444; font-weight: bold;">STRICTLY RESTRICTED ACCESS — INDUSTRY: ${data.industry}</p>
+  <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: monospace;">
+    <pre>${rawContent}</pre>
+  </div>
+  <!-- Steganographic Pixel Canary Tracker -->
+  <img src="http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr}" width="1" height="1" style="display:none;" alt="pixel-canary" />
+</body>
+</html>`;
+  } else if (data.docType === 'JSON') {
     watermarkedContent = JSON.stringify(
       {
         company: data.targetCompany,
         industry: data.industry,
         stego_signature: watermark.stegoWhitespaceSignature,
         security_token: watermark.metadataTag,
+        pixel_canary_beacon: `http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr}`,
         config: {
-          database_url: `postgresql://admin:${watermark.token}@db.${data.targetCompany.toLowerCase().replace(/\s+/g, '')}.local:5432/production`,
+          database_url: `postgresql://admin:${tokenStr}@db.${data.targetCompany.toLowerCase().replace(/\s+/g, '')}.local:5432/production`,
           api_key: `sk_live_${tokenStr}_ciphernest`,
         },
       },
@@ -56,11 +76,11 @@ export async function createLureDocument(data: {
     watermarkedContent = `# Confidential Environment Config - ${data.targetCompany}
 DB_HOST=db-primary.${data.targetCompany.toLowerCase().replace(/\s+/g, '')}.internal
 DB_USER=vault_admin
-DB_PASS=${watermark.token}
+DB_PASS=${tokenStr}
 API_SECRET=sk_live_${tokenStr}
 # STATIVE_TOKEN=${watermark.metadataTag} ${watermark.stegoWhitespaceSignature}`;
   } else {
-    watermarkedContent = `${rawContent}\n\n/* STEGO_WATERMARK:${watermark.stegoWhitespaceSignature} METADATA_TAG:${watermark.metadataTag} */`;
+    watermarkedContent = `${rawContent}\n\n/* STEGO_WATERMARK:${watermark.stegoWhitespaceSignature} METADATA_TAG:${watermark.metadataTag} BEACON:http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr} */`;
   }
 
   const newLure: LureDocument = {
@@ -78,6 +98,8 @@ API_SECRET=sk_live_${tokenStr}
   db.lures.unshift(newLure);
   db.lureContents[newLure.id] = watermarkedContent;
   writeDb(db);
+
+  appendAuditBlock('LURE_DOCUMENT_GENERATED', { id: newLure.id, title: newLure.title, token: tokenStr });
 
   return { lure: newLure, documentContent: watermarkedContent };
 }
@@ -107,5 +129,8 @@ export async function recordBeaconHit(watermarkToken: string, sourceIp?: string,
 
   db.beacons.unshift(beacon);
   writeDb(db);
+
+  appendAuditBlock('STEGANOGRAPHIC_BEACON_HIT', { lureId: lure.id, token: watermarkToken, ip: beacon.sourceIp });
+
   return beacon;
 }
