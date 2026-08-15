@@ -1,55 +1,22 @@
+import { readDb, writeDb } from '@/server/db/database';
 import { HoneypotProfile, TwinSyncMetadata } from '@/shared/types';
-
-let honeypotsStore: HoneypotProfile[] = [
-  {
-    id: 'hp-cowrie-01',
-    name: 'SSH Core Decoy (Cowrie)',
-    type: 'Cowrie',
-    status: 'active',
-    port: 2222,
-    ip: '127.0.0.1',
-    containerId: 'doc-7f9a8b1c',
-    twinSyncEnabled: true,
-    temporalJitterMs: 350,
-    activeSessionsCount: 3,
-    totalEventsCount: 142,
-    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-  },
-  {
-    id: 'hp-customllm-02',
-    name: 'AI-Native Dynamic Decoy (CustomLLM)',
-    type: 'CustomLLM',
-    status: 'active',
-    port: 2223,
-    ip: '127.0.0.1',
-    containerId: 'doc-3e2a1d9c',
-    twinSyncEnabled: true,
-    temporalJitterMs: 480,
-    activeSessionsCount: 1,
-    totalEventsCount: 89,
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'hp-dionaea-03',
-    name: 'Malware Trap (Dionaea)',
-    type: 'Dionaea',
-    status: 'stopped',
-    port: 445,
-    ip: '127.0.0.1',
-    containerId: 'doc-9c8b7a6f',
-    twinSyncEnabled: false,
-    temporalJitterMs: 150,
-    activeSessionsCount: 0,
-    totalEventsCount: 23,
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 export async function getAllHoneypots(): Promise<HoneypotProfile[]> {
-  return honeypotsStore;
+  const db = readDb();
+  return db.honeypots;
 }
 
-export async function createHoneypot(data: { name: string; type: 'Cowrie' | 'Dionaea' | 'CustomLLM'; port: number; temporalJitterMs: number; twinSyncEnabled: boolean }): Promise<HoneypotProfile> {
+export async function createHoneypot(data: {
+  name: string;
+  type: 'Cowrie' | 'Dionaea' | 'CustomLLM';
+  port: number;
+  temporalJitterMs: number;
+  twinSyncEnabled: boolean;
+}): Promise<HoneypotProfile> {
+  const db = readDb();
   const newHp: HoneypotProfile = {
     id: `hp-${data.type.toLowerCase()}-${Date.now().toString(36)}`,
     name: data.name,
@@ -64,25 +31,59 @@ export async function createHoneypot(data: { name: string; type: 'Cowrie' | 'Dio
     totalEventsCount: 0,
     createdAt: new Date().toISOString(),
   };
-  honeypotsStore.push(newHp);
+
+  db.honeypots.push(newHp);
+  writeDb(db);
   return newHp;
 }
 
 export async function toggleHoneypotStatus(id: string): Promise<HoneypotProfile | null> {
-  const hp = honeypotsStore.find((h) => h.id === id);
+  const db = readDb();
+  const hp = db.honeypots.find((h) => h.id === id);
   if (!hp) return null;
+
   hp.status = hp.status === 'active' ? 'stopped' : 'active';
+  writeDb(db);
   return hp;
 }
 
 export async function getDigitalTwinMetadata(): Promise<TwinSyncMetadata> {
+  // Real host system metadata dynamic scanner
+  const hostname = os.hostname() || 'ciphernest-node';
+  const osRelease = `${os.type()} ${os.release()}`;
+  const architecture = os.arch();
+
+  // Scan network interfaces for active port info
+  const interfaces = os.networkInterfaces();
+  const activeIfaces = Object.keys(interfaces).join(', ');
+
+  // Read-only scan of real workspace and home directory names
+  const scannedDirs: string[] = [];
+  try {
+    const rootItems = fs.readdirSync(process.cwd());
+    for (const item of rootItems) {
+      if (!item.startsWith('.')) {
+        const full = path.join(process.cwd(), item);
+        try {
+          if (fs.statSync(full).isDirectory()) {
+            scannedDirs.push(item);
+          }
+        } catch {
+          // ignore permission errors
+        }
+      }
+    }
+  } catch {
+    scannedDirs.push('src', 'public', 'node_modules', 'config');
+  }
+
   return {
-    hostname: 'ciphernest-defense-node',
-    osRelease: 'Darwin 24.3.0 / macOS Sequoia',
-    architecture: 'arm64 (Apple Silicon)',
-    activePortRange: '2222-2225, 8443, 9090',
-    directoryNaming: ['deceptiveos', 'documents', 'config', 'security-vault', 'src'],
-    filePatterns: ['*.env', '*.config.json', 'database_backup.sql', 'keys.pem', 'salary_review.xlsx'],
+    hostname,
+    osRelease,
+    architecture,
+    activePortRange: `2222-2225 (Ifaces: ${activeIfaces.substring(0, 30)})`,
+    directoryNaming: Array.from(new Set(scannedDirs)).slice(0, 8),
+    filePatterns: ['*.env', '*.config.json', 'package.json', 'tsconfig.json', 'salary_review.csv'],
     lastSyncedAt: new Date().toISOString(),
     syncApproved: true,
   };

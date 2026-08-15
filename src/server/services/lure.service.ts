@@ -1,65 +1,19 @@
+import { readDb, writeDb } from '@/server/db/database';
 import { BeaconEvent, LureDocument, WatermarkToken } from '@/shared/types';
 import { generateWatermarkSignature } from '@/shared/utils/formatters';
 import { generateSemanticLureDocument } from './ai.service';
 
-let luresStore: LureDocument[] = [
-  {
-    id: 'lure-doc-01',
-    title: 'Q3_Executive_Compensation_2026.xlsx',
-    docType: 'XLSX',
-    targetCompany: 'Acme Cyber Security',
-    industry: 'Defense & Financial Services',
-    watermark: {
-      token: 'wt_89f1a2c4e5b6',
-      embeddedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-      stegoWhitespaceSignature: '\u200B\u200C\u200B\u200C',
-      metadataTag: 'CN-WM-89F1A2C4',
-    },
-    beaconHitsCount: 4,
-    createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-  },
-  {
-    id: 'lure-doc-02',
-    title: 'aws_production_credentials_vault.json',
-    docType: 'JSON',
-    targetCompany: 'Acme Cyber Security',
-    industry: 'Cloud Infrastructure',
-    watermark: {
-      token: 'wt_3e4d5c6b7a8f',
-      embeddedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-      stegoWhitespaceSignature: '\u200C\u200B\u200C\u200B',
-      metadataTag: 'CN-WM-3E4D5C6B',
-    },
-    beaconHitsCount: 2,
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-];
-
-let beaconsStore: BeaconEvent[] = [
-  {
-    id: 'beacon-01',
-    lureId: 'lure-doc-01',
-    documentTitle: 'Q3_Executive_Compensation_2026.xlsx',
-    watermarkToken: 'wt_89f1a2c4e5b6',
-    sourceIp: '185.220.101.4',
-    location: 'Frankfurt, Germany (TOR Exit Node)',
-    userAgent: 'LibreOffice/7.6 (Linux x86_64)',
-    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-  },
-  {
-    id: 'beacon-02',
-    lureId: 'lure-doc-02',
-    documentTitle: 'aws_production_credentials_vault.json',
-    watermarkToken: 'wt_3e4d5c6b7a8f',
-    sourceIp: '194.26.29.112',
-    location: 'Bucharest, Romania',
-    userAgent: 'python-requests/2.31.0',
-    timestamp: new Date(Date.now() - 1800000).toISOString(),
-  },
-];
-
 export async function getAllLures(): Promise<LureDocument[]> {
-  return luresStore;
+  const db = readDb();
+  return db.lures;
+}
+
+export async function getLureContentById(id: string): Promise<{ lure: LureDocument; content: string } | null> {
+  const db = readDb();
+  const lure = db.lures.find((l) => l.id === id);
+  if (!lure) return null;
+  const content = db.lureContents[id] || `[CONFIDENTIAL - ${lure.targetCompany}]\nDocument Token: ${lure.watermark.token}`;
+  return { lure, content };
 }
 
 export async function createLureDocument(data: {
@@ -69,6 +23,8 @@ export async function createLureDocument(data: {
   industry: string;
   customContext?: string;
 }): Promise<{ lure: LureDocument; documentContent: string }> {
+  const db = readDb();
+
   const tokenStr = `wt_${Math.random().toString(36).substring(2, 14)}`;
   const watermark: WatermarkToken = {
     token: tokenStr,
@@ -78,7 +34,34 @@ export async function createLureDocument(data: {
   };
 
   const rawContent = await generateSemanticLureDocument(data.docType, data.targetCompany, data.industry);
-  const watermarkedContent = `${rawContent}\n/* ${watermark.stegoWhitespaceSignature} META:${watermark.metadataTag} */`;
+
+  // Real steganographic watermark embedding with zero-width whitespace signature & metadata
+  let watermarkedContent = '';
+  if (data.docType === 'JSON') {
+    watermarkedContent = JSON.stringify(
+      {
+        company: data.targetCompany,
+        industry: data.industry,
+        stego_signature: watermark.stegoWhitespaceSignature,
+        security_token: watermark.metadataTag,
+        config: {
+          database_url: `postgresql://admin:${watermark.token}@db.${data.targetCompany.toLowerCase().replace(/\s+/g, '')}.local:5432/production`,
+          api_key: `sk_live_${tokenStr}_ciphernest`,
+        },
+      },
+      null,
+      2
+    );
+  } else if (data.docType === 'ENV') {
+    watermarkedContent = `# Confidential Environment Config - ${data.targetCompany}
+DB_HOST=db-primary.${data.targetCompany.toLowerCase().replace(/\s+/g, '')}.internal
+DB_USER=vault_admin
+DB_PASS=${watermark.token}
+API_SECRET=sk_live_${tokenStr}
+# STATIVE_TOKEN=${watermark.metadataTag} ${watermark.stegoWhitespaceSignature}`;
+  } else {
+    watermarkedContent = `${rawContent}\n\n/* STEGO_WATERMARK:${watermark.stegoWhitespaceSignature} METADATA_TAG:${watermark.metadataTag} */`;
+  }
 
   const newLure: LureDocument = {
     id: `lure-doc-${Date.now().toString(36)}`,
@@ -89,18 +72,24 @@ export async function createLureDocument(data: {
     watermark,
     beaconHitsCount: 0,
     createdAt: new Date().toISOString(),
+    downloadUrl: `/api/lures/download/lure-doc-${Date.now().toString(36)}`,
   };
 
-  luresStore.unshift(newLure);
+  db.lures.unshift(newLure);
+  db.lureContents[newLure.id] = watermarkedContent;
+  writeDb(db);
+
   return { lure: newLure, documentContent: watermarkedContent };
 }
 
 export async function getAllBeacons(): Promise<BeaconEvent[]> {
-  return beaconsStore;
+  const db = readDb();
+  return db.beacons;
 }
 
 export async function recordBeaconHit(watermarkToken: string, sourceIp?: string, userAgent?: string): Promise<BeaconEvent | null> {
-  const lure = luresStore.find((l) => l.watermark.token === watermarkToken);
+  const db = readDb();
+  const lure = db.lures.find((l) => l.watermark.token === watermarkToken);
   if (!lure) return null;
 
   lure.beaconHitsCount += 1;
@@ -111,11 +100,12 @@ export async function recordBeaconHit(watermarkToken: string, sourceIp?: string,
     documentTitle: lure.title,
     watermarkToken,
     sourceIp: sourceIp || '198.51.100.42',
-    location: 'External Attacker Host (Beacon Received)',
+    location: 'External Host (Beacon Received)',
     userAgent: userAgent || 'Mozilla/5.0 (Automated Document Parser)',
     timestamp: new Date().toISOString(),
   };
 
-  beaconsStore.unshift(beacon);
+  db.beacons.unshift(beacon);
+  writeDb(db);
   return beacon;
 }

@@ -7,7 +7,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/client/component
 import { BeaconEvent, LureDocument } from '@/shared/types';
 import { formatTimestamp } from '@/shared/utils/formatters';
 import React, { useEffect, useState } from 'react';
-import { RiFileShield2Line, RiGlobalLine, RiRadarLine, RiTimeLine } from 'react-icons/ri';
+import { RiDownloadLine, RiFileShield2Line, RiGlobalLine, RiRadarLine, RiTimeLine } from 'react-icons/ri';
 
 export default function LuresPage() {
   const [lures, setLures] = useState<LureDocument[]>([]);
@@ -57,6 +57,15 @@ export default function LuresPage() {
     } catch {
       // fallback
     }
+  };
+
+  const handleDownloadLure = (id: string, title: string) => {
+    const a = document.createElement('a');
+    a.href = `/api/lures/download/${id}`;
+    a.download = title;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   return (
@@ -110,10 +119,16 @@ export default function LuresPage() {
 
                 <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
                   <span>Token: <strong className="text-emerald-400">{lure.watermark.token}</strong></span>
-                  <Button size="sm" variant="outline" onClick={() => handleSimulateBeaconHit(lure.watermark.token)}>
-                    <RiRadarLine className="w-3.5 h-3.5" />
-                    <span>Test Beacon Callback</span>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => handleDownloadLure(lure.id, lure.title)}>
+                      <RiDownloadLine className="w-3.5 h-3.5" />
+                      <span>Download File</span>
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleSimulateBeaconHit(lure.watermark.token)}>
+                      <RiRadarLine className="w-3.5 h-3.5" />
+                      <span>Test Beacon</span>
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}

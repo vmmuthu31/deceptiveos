@@ -5,7 +5,7 @@ import { Button } from '@/client/components/ui/Button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/Card';
 import { ComplianceSummary } from '@/shared/types';
 import React, { useEffect, useState } from 'react';
-import { RiCpuLine, RiDownloadLine, RiSettings4Line, RiShieldCheckLine } from 'react-icons/ri';
+import { RiCompass3Line, RiCpuLine, RiDownloadLine, RiSettings4Line, RiShieldCheckLine } from 'react-icons/ri';
 
 export default function SettingsPage() {
   const [compliance, setCompliance] = useState<ComplianceSummary | null>(null);
@@ -58,15 +58,33 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDownloadStix = () => {
+    const a = document.createElement('a');
+    a.href = '/api/export/stix';
+    a.download = 'CipherNest_STIX2.1_ThreatIntel.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const handleDownloadSigma = () => {
+    const a = document.createElement('a');
+    a.href = '/api/export/sigma';
+    a.download = 'CipherNest_Sigma_Detection_Rules.yml';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
           <RiSettings4Line className="w-6 h-6 text-emerald-400" />
-          Settings & Compliance Audit Export
+          Settings, Intelligence & Audit Exports
         </h1>
         <p className="text-xs text-slate-400 mt-1">
-          Verify local AI inference model health, air-gap security settings, and export immutable SOC 2 / ISO 27001 audit evidence.
+          Verify local AI inference model health, air-gap security settings, and export STIX 2.1 Threat Intel bundles, Sigma rules, and SOC 2 evidence.
         </p>
       </div>
 
@@ -98,6 +116,20 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Local Response Latency:</span>
               <span className="text-cyan-400">{ollamaStatus.latencyMs}ms</span>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
+            <span className="text-xs font-semibold text-slate-300 block font-sans">Enterprise SIEM Threat Intel Exports:</span>
+            <div className="flex items-center gap-3">
+              <Button size="sm" variant="secondary" onClick={handleDownloadStix}>
+                <RiCompass3Line className="w-4 h-4 text-cyan-400" />
+                <span>Export STIX 2.1 Bundle</span>
+              </Button>
+              <Button size="sm" variant="secondary" onClick={handleDownloadSigma}>
+                <RiDownloadLine className="w-4 h-4 text-emerald-400" />
+                <span>Export Sigma Rules</span>
+              </Button>
             </div>
           </div>
         </Card>
