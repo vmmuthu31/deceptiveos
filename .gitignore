@@ -2,6 +2,7 @@
 node_modules/
 rust/target/
 rust/Cargo.lock
+.next
 
 # Build outputs
 frontend/dist/

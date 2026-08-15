@@ -5,7 +5,7 @@ import { Button } from '@/client/components/ui/Button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/Card';
 import { HoneypotProfile } from '@/shared/types';
 import React from 'react';
-import { RiCpuLine, RiPlayFill, RiRefreshLine, RiStopFill, RiTerminalBoxLine } from 'react-icons/ri';
+import { RiPlayFill, RiRefreshLine, RiStopFill, RiTerminalBoxLine } from 'react-icons/ri';
 
 interface HoneypotCardProps {
   honeypot: HoneypotProfile;

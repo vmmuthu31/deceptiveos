@@ -1,177 +1,50 @@
 # CipherNest Development Rules
 
 ## Project Overview
-CipherNest is an **Adversarial AI Defense Engine** — a local-first cyber deception platform built with a Rust (Axum) backend and Electron + React frontend. It deploys living digital twin decoys, generates semantically authentic lure documents with tracking watermarks, fingerprints attacker identity across sessions, and is purpose-built to counter autonomous AI-driven attacks.
+CipherNest is an **Adversarial AI Defense Engine** — a local-first cyber deception platform built with Next.js (App Router), TypeScript, Tailwind CSS v4, and React Icons. It deploys living digital twin decoys, generates semantically authentic lure documents with steganographic tracking watermarks, fingerprints attacker identity across sessions, and is purpose-built to counter autonomous AI-driven attacks.
 
 ## Architecture
-- **Backend**: Rust workspace at `rust/` with Axum web framework
-- **Frontend**: React 19 + TypeScript + Tailwind at `frontend/`
-- **Desktop**: Electron main process at `electron/`
-- **Native**: napi-rs module at `rust/crates/native/` (entropy scoring, watermarks, env metadata)
-- **Local AI**: Ollama (llama3.1:8b) — honeypot responses, lure generation, attacker classification
+- **Full-Stack Framework**: Next.js 15+ (App Router) + React 19 + TypeScript at root `src/`
+- **Styling**: Tailwind CSS v4 + Glassmorphism + custom dark theme system
+- **Icons**: React Icons (`react-icons`) + Lucide Icons (`lucide-react`)
+- **Server Services**: Local API Route Handlers in `src/app/api/` & Server Services in `src/server/services/`
+- **Local AI**: Ollama (llama3.1:8b) — honeypot SSH responses, lure document generation, attacker classification
 
-## Crate Responsibilities
+## Architecture Layers & Responsibilities
 
-### `ciphernest-core`
-Shared data models, config loading, and error types. All other crates depend on this.
-- `Honeypot`, `HoneypotType`, `HoneypotStatus`, `HoneypotProfile`
-- `Event`, `EventKind`, `SessionEvent`, `CommandEvent`
-- `AttackerProfile`, `AttackerClass` (ScriptKiddie | HumanOperator | AIAgent)
-- `LureDocument`, `WatermarkToken`, `BeaconEvent`
-- `Config` — loaded from `ciphernest.toml` or env vars
+### Three-Context Model
+- **`server/` (`src/server/`)**: Backend business logic, Ollama AI clients, honeypot manager, lure generation, and steganographic watermarking.
+- **`client/` (`src/client/`)**: Browser UI components, shadcn-style UI primitives, custom hooks, and state management.
+- **`shared/` (`src/shared/`)**: Reusable TypeScript interfaces (`types/`), Zod validation schemas (`schemas/`), and pure formatters (`utils/`).
 
-### `honeypot-engine`
-Docker container lifecycle + REST API for honeypot management.
-- Start/stop Cowrie, Dionaea, CustomLLM containers via `bollard` (Docker API)
-- Read Cowrie JSON logs → emit `Event` structs to PostgreSQL
-- Twin Sync: read real environment metadata via `native` crate → auto-update honeypot profiles
-- Temporal deception: inject configurable response delays and fake process activity
-
-### `ai-engine`
-All ML/AI inference. No Docker dependency.
-- **Attacker classifier**: after each session, classify attacker as ScriptKiddie / HumanOperator / AIAgent using Ollama
-- **Behavioral fingerprinting**: extract timing patterns, tool signatures, command sequences into an `AttackerProfile`
-- **Anomaly detection**: Isolation Forest + DBSCAN on event streams (via `linfa`)
-- **MITRE ATT&CK matching**: compare fingerprint against known group signatures
-
-### `lure-engine` *(new crate — to be created)*
-Semantic lure document generation and watermark embedding.
-- Call Ollama to generate realistic fake documents (PDFs, DOCX, XLSX, JSON configs) based on user-provided company context
-- Embed steganographic watermarks: unique token in document metadata, whitespace patterns, pixel canaries in images
-- Expose a beacon receiver endpoint — log when a watermarked doc "calls home"
-- Store generated lures and beacon hit history in PostgreSQL
-
-### `integration-layer`
-SIEM output and threat intelligence export.
-- Generate Sigma rules from session command data
-- Produce STIX 2.1 bundles from attacker profiles
-- Run a TAXII 2.1 server for automated intel sharing
-- Push alerts to external SIEMs (Splunk, Elastic, Sentinel) via webhooks
-
-### `compliance`
-Audit evidence generation for regulated industries.
-- Immutable audit log (append-only PostgreSQL table with hash chaining)
-- SOC 2 control evidence export
-- ISO 27001 control mapping
-- GDPR data minimization proof
-- One-click PDF compliance report generation
-
-### `native` (napi-rs)
-CPU-bound operations exposed to Electron/Node.js.
-- `hash_sha256`, `generate_session_id`, `generate_honeypot_id`
-- `validate_ip`, `parse_port_range`
-- `entropy_score` — Shannon entropy on attacker payloads (high entropy = packed/encrypted malware)
-- `read_env_metadata` — read local filesystem structure for twin sync (hostnames, dir names, file patterns) — **read-only, never sends data externally**
-- `embed_watermark` — steganographic token embedding in binary file buffers
-- `verify_watermark` — extract and verify watermark from a document
+### Server Services (`src/server/services/`)
+- `ai.service.ts`: Ollama API client for SSH honeypot counter-responses, attacker classification, and semantic lure synthesis.
+- `honeypot.service.ts`: Container lifecycle management & Living Digital Twin metadata reader.
+- `lure.service.ts`: Steganographic watermark token embedding and beacon tracking callbacks.
+- `fingerprint.service.ts`: Attacker behavioral DNA classification & MITRE ATT&CK mapping.
+- `compliance.service.ts`: Immutable hash-chained audit log & SOC 2 evidence export.
 
 ## Development Commands
 
-### Root
 ```bash
-npm run dev          # Start frontend dev server + Electron
-npm run dev:rust     # Start Rust backend in watch mode
-npm run build        # Build everything for production
-npm run lint         # Lint frontend + Rust
-npm run test         # Run all tests
-```
-
-### Rust Backend
-```bash
-cd rust
-cargo build          # Build all crates
-cargo test           # Run all tests
-cargo clippy         # Lint
-cargo fmt            # Format
-```
-
-### Frontend
-```bash
-cd frontend
-npm run dev          # Vite dev server
-npm run build        # Production build
-npm run lint         # ESLint
-```
-
-### Local AI (Ollama)
-```bash
-ollama pull llama3.1:8b          # One-time model download
-ollama serve                      # Start Ollama (auto-started by docker-compose)
+bun run dev          # Start Next.js App Router dev server (http://localhost:3000)
+bun run build        # Production Next.js build
+bun run lint         # ESLint check across all TypeScript files
 ```
 
 ## Key Design Principles
 
 ### AI-First Deception
 - Honeypot responses MUST be generated by Ollama, not hardcoded templates
-- Response timing must include realistic jitter (50–800ms) to defeat AI scanners
-- Command outputs must vary statistically across sessions — no two sessions identical
-- The `CustomLLM` honeypot type is the primary innovation — prioritize it
+- Response timing includes realistic jitter (50–800ms) to defeat AI scanners
+- Command outputs vary statistically across sessions
 
 ### Local-First / Air-Gap Safe
 - NEVER make external network calls without explicit user opt-in
-- All AI inference runs via local Ollama — no OpenAI/Anthropic API calls
-- Federated threat sharing is opt-in only, with anonymization before transmission
-- The app must be fully functional with no internet connection
+- All AI inference runs via local Ollama — no cloud API dependencies
+- App must be fully functional with zero internet connection
 
-### Attacker Data Handling
-- Attacker session data is SECURITY-SENSITIVE — treat like PII
-- Raw attacker payloads go to an append-only audit table, never application logs
-- Fingerprint data is stored encrypted at rest (AES-256 via SQLx + pgcrypto)
-- Lure documents with watermarks must be stored separately from real user documents
-
-### Twin Sync Safety
-- `read_env_metadata` reads ONLY: directory names, file name patterns, hostname, software version strings
-- NEVER reads file contents from the real environment
-- User must explicitly authorize twin sync with a permissions dialog
-- Twin sync metadata is stored locally only, never transmitted
-
-## Code Style
-
-### Rust
-- Use `rustfmt` for formatting (default config)
-- Use `clippy` with `#![deny(warnings)]` in all crates
-- Follow Rust API Guidelines
-- Use `thiserror` for library error types, `anyhow` in binary entry points
-- Use `tracing` for all logging — structured JSON in production, pretty in dev
-- Use `tokio` for async (`#[tokio::main]`)
-- Ollama calls via `reqwest` — always set a timeout, always handle model-not-found
-
-### TypeScript/React
-- TypeScript strict mode — no `any` types
-- ESLint with recommended rules
-- Tailwind CSS only — no inline styles, no CSS modules
-- Function components with hooks only
-- React Router v7 for routing
-- WebSocket for real-time event streaming (replace polling where possible)
-
-## Security Rules
-- NEVER log attacker credentials, payloads, or session content to application logs
-- ALWAYS validate and sanitize all input at API boundaries
-- NEVER expose real system paths in API responses
-- Use parameterized queries (SQLx) — no string interpolation in SQL
-- Sanitize all attacker data before rendering in frontend (XSS risk)
-- Honeypots run in isolated Docker networks — no host network access
-- `native` module: read-only filesystem access only, CPU-bound operations only
-- Watermark beacon endpoint must rate-limit and authenticate callbacks
-
-## Testing
-- Rust: `cargo test` (unit + integration)
-- Frontend: `vitest` for unit tests, Playwright for E2E
-- Integration tests use Docker for honeypot containers
-- AI engine tests must use recorded session fixtures, not live Ollama (for CI speed)
-- Lure engine tests verify watermark round-trip: embed → extract → verify token match
-- Fingerprinting tests use anonymized real attack session replays
-
-## Git Workflow
-- Feature branches from `main`
-- PR required for all changes
-- Squash commits on merge
-- Commit messages: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
-- Never commit Ollama model files or attacker session data
-
-## Compliance
-- All data handling must comply with SOC 2, ISO 27001, GDPR
-- Audit logs must be immutable (hash-chained append-only table)
-- Data retention is configurable per framework requirement
-- Encryption at rest (AES-256 via pgcrypto) and in transit (TLS 1.3)
-- Lure document generation must not use real employee PII — synthetic only
+### Code Style & Security
+- Strict TypeScript (`tsconfig.json`) — no `any` types
+- Parameterized validation with Zod schemas for all API route handlers
+- Self-documenting code without obvious comments
