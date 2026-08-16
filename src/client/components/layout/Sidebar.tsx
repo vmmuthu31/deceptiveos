@@ -92,9 +92,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Sidebar Header */}
         <div className="p-4 border-b border-slate-200/80 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex-shrink-0 flex items-center justify-center text-white shadow-xs">
-              <RiShieldCrossLine className="w-5 h-5" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="CipherNest Logo"
+              className="w-9 h-9 object-contain flex-shrink-0 drop-shadow-md hover:scale-110 transition-transform duration-300 animate-pulse-glow"
+            />
             {(!collapsed || mobileOpen) && (
               <div className="whitespace-nowrap transition-opacity">
                 <div className="flex items-center gap-1.5">

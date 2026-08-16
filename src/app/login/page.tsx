@@ -5,7 +5,7 @@ import { Card } from '@/client/components/ui/Card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { RiAlertLine, RiArrowRightLine, RiEyeLine, RiEyeOffLine, RiLockPasswordLine, RiMailLine, RiShieldCrossLine } from 'react-icons/ri';
+import { RiAlertLine, RiArrowRightLine, RiEyeLine, RiEyeOffLine, RiLockPasswordLine, RiMailLine } from 'react-icons/ri';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,10 +46,12 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center items-center p-4 font-sans antialiased">
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto shadow-md border border-indigo-400/40">
-            <RiShieldCrossLine className="w-7 h-7" />
-          </div>
+        <div className="text-center space-y-3">
+          <img
+            src="/logo.png"
+            alt="CipherNest Logo"
+            className="w-16 h-16 object-contain mx-auto animate-float animate-pulse-glow drop-shadow-xl hover:scale-105 transition-transform cursor-pointer"
+          />
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 uppercase">
             CIPHER<span className="text-indigo-600">NEST</span>
           </h1>
