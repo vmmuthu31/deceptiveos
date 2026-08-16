@@ -1,10 +1,38 @@
 # CipherNest
 
-**Private Defense Network for Autonomous AI Attacks**
+**Private Cyber Threat Intelligence Network Powered by AI Deception and STRK20**
 
 > *"A privacy-preserving immune system for the age of autonomous cyberattacks. Trap autonomous attackers. Learn their behavioral identity. Share intelligence without exposing the victim. Reward discoveries privately."*
 
 CipherNest is an **Adversarial AI Defense Engine & Private Cyber Deception Network** built with Next.js (App Router), TypeScript, Tailwind CSS v4, OpenCode AI (`opencode/mimo-v2.5-free`), and Starknet STRK20 zero-knowledge privacy settlement. It deploys adaptive digital twin decoys, generates semantically authentic lure documents with steganographic tracking watermarks, fingerprints attacker identity across sessions, and enables private, zero-knowledge threat bounties to counter autonomous AI-driven attack agents.
+
+📖 **Detailed Technical Spec**: See [`STRK20_INTEGRATION.md`](./STRK20_INTEGRATION.md) for full Starknet contract architecture and transaction lifecycle details.
+
+---
+
+## 🔄 The 8-Step Complete Threat Loop
+
+```
+  1. ATTACK          2. DECEIVE           3. FINGERPRINT       4. CORRELATE
+┌──────────┐        ┌──────────┐         ┌──────────────┐     ┌───────────┐
+│ Attacker │ ────►  │ Decoy    │  ────►  │ Attacker DNA │ ──► │ Threat    │
+│ Enters   │        │ Twin     │         │ (7F-A2-91)   │     │ Graph     │
+└──────────┘        └──────────┘         └──────────────┘     └─────┬─────┘
+                                                                    │
+  8. LEARN           7. PRIVATE PAY       6. VERIFY            5. BOUNTY
+┌──────────┐        ┌──────────┐         ┌──────────────┐     ┌─────▼─────┐
+│ Network  │ ◄────  │ STRK20   │  ◄────  │ ZK Proof /   │ ◄── │ Ghost-    │
+│ Updates  │        │ Transfer │         │ Intel Claim  │     │ Bounty    │
+└──────────┘        └──────────┘         └──────────────┘     └───────────┘
+```
+
+---
+
+## 👥 The 3 Economic Roles
+
+1. **Defender (Funder)**: Traps autonomous attackers in AI digital twins, extracts Attacker DNA (`DNA: 7F-A2-91`), and funds a GhostBounty in shielded STRK20. The defender's wallet address and organization identity remain completely hidden on-chain.
+2. **Researcher (Claimant)**: Discovers matching threat intelligence (C2 IP addresses, payload signatures, campaign targets) and claims the bounty anonymously. STRK20 transfers shielded tokens directly to the researcher's private balance.
+3. **Intelligence Network (Receiver)**: Receives anonymized, zero-knowledge threat correlation signatures that protect all participating defenders against identical autonomous AI attack campaigns.
 
 ---
 
@@ -41,48 +69,11 @@ CipherNest tracks live quantitative metrics comparing traditional static honeypo
 
 ## 🔒 STRK20 Transaction Lifecycle
 
-CipherNest implements a 3-step privacy lifecycle on Starknet:
+CipherNest implements three core STRK20 mainnet transaction primitives:
 
-```
-                  ┌──────────────────────┐
-                  │      ATTACKER        │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-               ┌─────────────────────────┐
-               │   CIPHERNEST DECEPTION  │
-               │  AI Honeypot / Twin     │
-               └────────────┬────────────┘
-                            │
-                            ▼
-               ┌─────────────────────────┐
-               │   ATTACKER DNA ENGINE   │
-               │  DNA: 7F-A2-91 (96.1%)  │
-               └────────────┬────────────┘
-                            │
-                            ▼
-               ┌─────────────────────────┐
-               │      GHOSTBOUNTY        │
-               │  "Find C2 Infrastructure"│
-               │     250 STRK SHIELDED   │
-               └────────────┬────────────┘
-                            │
-                            ▼
-               ┌─────────────────────────┐
-               │         STRK20          │
-               │                         │
-               │ TX 1: Shield Balance    │
-               │ TX 2: Private Transfer  │
-               │ TX 3: Unshield Tokens   │
-               └────────────┬────────────┘
-                            │
-                            ▼
-               ┌─────────────────────────┐
-               │   SECURITY RESEARCHER   │
-               │  Submits Intel & Claims │
-               │   Reward Anonymously    │
-               └─────────────────────────┘
-```
+- **TX 1 — Shield**: Public Wallet ➔ STRK20 Shielded Note (`500 STRK`)
+- **TX 2 — Private Transfer**: GhostBounty Escrow ➔ Anonymous Researcher (`250 STRK`)
+- **TX 3 — Unshield**: Shielded UTXO Balance ➔ Public Wallet Address (`250 STRK`)
 
 ---
 
@@ -146,6 +137,7 @@ bun run lint
 - **Category**: Infra
 - **One-Liner**: Adversarial AI Cyber Deception Engine deploying living digital twin decoys, steganographic canary lures, and zero-knowledge audit trails for Starknet.
 - **Metadata Spec**: [`strk20.json`](./strk20.json)
+- **Technical Spec**: [`STRK20_INTEGRATION.md`](./STRK20_INTEGRATION.md)
 
 ---
 
