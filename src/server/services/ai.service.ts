@@ -25,34 +25,27 @@ export async function checkOpenCodeHealth(): Promise<{ available: boolean; model
   return {
     available: false,
     model: `opencode/${configuredModel}`,
-    provider: 'OpenCode API Zen (Key Not Configured)',
+    provider: 'OpenCode API Zen (Key Required in .env)',
     latencyMs: 0,
   };
 }
 
-/**
- * Temporal Deception Engine: Calculate command delay based on Linux command complexity
- */
 export function calculateTemporalDeceptionDelay(command: string): number {
   const trimmed = command.toLowerCase().trim();
 
-  // Heavy filesystem searches & regex scans
   if (trimmed.includes('find') || trimmed.includes('grep') || trimmed.includes('locate')) {
-    return Math.floor(Math.random() * 1400) + 1200; // 1200ms - 2600ms
+    return Math.floor(Math.random() * 1400) + 1200;
   }
 
-  // Cryptographic & key generation ops
   if (trimmed.includes('openssl') || trimmed.includes('gpg') || trimmed.includes('ssh-keygen')) {
-    return Math.floor(Math.random() * 800) + 700; // 700ms - 1500ms
+    return Math.floor(Math.random() * 800) + 700;
   }
 
-  // Network recon & tool downloads
   if (trimmed.includes('nmap') || trimmed.includes('curl') || trimmed.includes('wget') || trimmed.includes('netstat')) {
-    return Math.floor(Math.random() * 600) + 400; // 400ms - 1000ms
+    return Math.floor(Math.random() * 600) + 400;
   }
 
-  // Standard interactive commands (ls, whoami, pwd, cat)
-  return Math.floor(Math.random() * 250) + 80; // 80ms - 330ms
+  return Math.floor(Math.random() * 250) + 80;
 }
 
 export async function generateHoneypotSSHResponse(
@@ -63,45 +56,49 @@ export async function generateHoneypotSSHResponse(
   const delayMs = calculateTemporalDeceptionDelay(command);
   const openCodeKey = process.env.OPENCODE_API_KEY;
 
+  if (!openCodeKey || openCodeKey.trim().length === 0) {
+    return {
+      output: `[CipherNest Security Notice]: Please set OPENCODE_API_KEY in your .env file to enable live AI honeypot SSH response synthesis.`,
+      delayMs,
+    };
+  }
+
+  const modelName = customModel || process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
+  const formattedModel = modelName.startsWith('opencode/') ? modelName : `opencode/${modelName}`;
+
   const systemPrompt = `You are simulating a vulnerable Linux server terminal shell for an SSH honeypot.
 Respond ONLY with the raw Linux shell output for the given command. No markdown, no triple backticks, no explanations. Make it look 100% authentic to Ubuntu Linux 24.04.`;
 
   const userPrompt = `Prior command history:\n${history.slice(-5).join('\n')}\n\nUser command: ${command}`;
 
-  if (openCodeKey && openCodeKey.trim().length > 0) {
-    const modelName = customModel || process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
-    const formattedModel = modelName.startsWith('opencode/') ? modelName : `opencode/${modelName}`;
+  try {
+    const res = await fetch('https://opencode.ai/zen/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openCodeKey}`,
+      },
+      body: JSON.stringify({
+        model: formattedModel,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.2,
+      }),
+    });
 
-    try {
-      const res = await fetch('https://opencode.ai/zen/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openCodeKey}`,
-        },
-        body: JSON.stringify({
-          model: formattedModel,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.2,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
-        const output = data.choices?.[0]?.message?.content;
-        if (output) {
-          return { output: output.trim(), delayMs };
-        }
+    if (res.ok) {
+      const data = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+      const output = data.choices?.[0]?.message?.content;
+      if (output) {
+        return { output: output.trim(), delayMs };
       }
-    } catch {
-      // Fallback to high fidelity Linux shell emulator
     }
+    return { output: `Error from OpenCode AI (${res.status} ${res.statusText})`, delayMs };
+  } catch (err: any) {
+    return { output: `OpenCode API Connection Error: ${err.message}`, delayMs };
   }
-
-  return { output: getFallbackStatefulShellOutput(command), delayMs };
 }
 
 export async function classifyAttackerSession(commands: string[]): Promise<{ classification: AttackerClass; confidence: number; summary: string }> {
@@ -132,61 +129,35 @@ export async function classifyAttackerSession(commands: string[]): Promise<{ cla
 
 export async function generateSemanticLureDocument(docType: string, company: string, industry: string): Promise<string> {
   const openCodeKey = process.env.OPENCODE_API_KEY;
-  const prompt = `Generate a realistic fake confidential ${docType} document for a company named "${company}" operating in the ${industry} industry. Include authentic-looking fake data such as internal hostnames, project names, or financial metadata. Do not state that this is fake.`;
+  if (!openCodeKey || openCodeKey.trim().length === 0) {
+    return `[CipherNest Security Notice]: Please set OPENCODE_API_KEY in your .env file to generate live semantic lure documents.`;
+  }
 
-  if (openCodeKey && openCodeKey.trim().length > 0) {
-    const modelName = process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
-    const formattedModel = modelName.startsWith('opencode/') ? modelName : `opencode/${modelName}`;
+  const modelName = process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
+  const formattedModel = modelName.startsWith('opencode/') ? modelName : `opencode/${modelName}`;
+  const prompt = `Generate a realistic confidential ${docType} document for a company named "${company}" operating in the ${industry} industry. Include authentic internal hostnames, project names, or financial metadata. Do not state that this is fake.`;
 
-    try {
-      const res = await fetch('https://opencode.ai/zen/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openCodeKey}`,
-        },
-        body: JSON.stringify({
-          model: formattedModel,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-        }),
-      });
+  try {
+    const res = await fetch('https://opencode.ai/zen/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openCodeKey}`,
+      },
+      body: JSON.stringify({
+        model: formattedModel,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+      }),
+    });
 
-      if (res.ok) {
-        const data = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
-        const output = data.choices?.[0]?.message?.content;
-        if (output) return output.trim();
-      }
-    } catch {
-      // Fallback
+    if (res.ok) {
+      const data = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+      const output = data.choices?.[0]?.message?.content;
+      if (output) return output.trim();
     }
+    return `Error from OpenCode AI (${res.status} ${res.statusText})`;
+  } catch (err: any) {
+    return `OpenCode API Connection Error: ${err.message}`;
   }
-
-  return `[CONFIDENTIAL - ${company.toUpperCase()} INTERNAL USE ONLY]
-Project Cipher-Twin Infrastructure Configuration
-Target Environment: ${company.toLowerCase()}-prod-us-east-1.internal
-Database Endpoint: postgresql://admin:P%40ssw0rd2026@db-primary.${company.toLowerCase()}.local:5432/${company.toLowerCase()}_prod
-API Gateway Key: sk_live_99a8b7c6d5e4f3a2b1_ciphernest
-Internal Services: auth-service:8080, payment-vault:8443, telemetry-node:9090
-Contact: secops@${company.toLowerCase()}.com`;
-}
-
-function getFallbackStatefulShellOutput(cmd: string): string {
-  const trimmed = cmd.trim();
-
-  if (trimmed === 'ls' || trimmed === 'ls -la') {
-    return 'drwxr-xr-x 4 root root 4096 Aug 15 11:02 .\ndrwxr-xr-x 20 root root 4096 Aug 15 11:00 ..\n-rw-r--r-- 1 root root  220 Aug 15 11:00 .bashrc\n-rw-r--r-- 1 root root  807 Aug 15 11:00 .profile\n-rw------- 1 root root 1420 Aug 15 11:02 database_backup.sql\n-rw-r--r-- 1 root root 4096 Aug 15 11:02 config.env';
-  }
-  if (trimmed.startsWith('cat ')) {
-    return 'DB_HOST=10.0.4.12\nDB_USER=admin\nDB_PASS=CipherNestSecret2026!\nREDIS_URL=redis://10.0.4.15:6379';
-  }
-  if (trimmed === 'pwd') return '/root';
-  if (trimmed === 'whoami') return 'root';
-  if (trimmed === 'ps aux' || trimmed === 'ps') {
-    return 'USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\nroot         1  0.0  0.1  22556  3100 ?        Ss   Aug15   0:02 /sbin/init\nroot       142  0.0  0.2 108420  5400 ?        Ss   11:02   0:00 /usr/sbin/sshd\nroot       891  0.0  0.1  14200  2800 pts/0    Ss+  11:04   0:00 -bash';
-  }
-  if (trimmed === 'uname -a') {
-    return 'Linux cipher-node-01 6.8.0-40-generic #40-Ubuntu SMP PREEMPT_DYNAMIC Thu Aug 15 10:14:02 UTC 2026 x86_64 GNU/Linux';
-  }
-  return `bash: ${trimmed.split(' ')[0]}: command executed successfully`;
 }

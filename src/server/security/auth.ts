@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { Pool } from 'pg';
 
 export interface UserProfile {
   id: string;
@@ -19,27 +20,59 @@ export interface UserRecord extends UserProfile {
 }
 
 const JWT_SECRET_KEY = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'ciphernest-dev-secret-key-998877665544'
+  process.env.JWT_SECRET || 'ciphernest-prod-jwt-key-334455667788'
 );
 
 const COOKIE_NAME = 'cipher_token';
 
-// In-Memory User Store (Fallback / Database Pooler Ready Interface)
-const userStore: Map<string, UserRecord> = new Map();
+// Real PostgreSQL Pool (Connected via DATABASE_URL)
+let dbPool: Pool | null = null;
+if (process.env.DATABASE_URL) {
+  try {
+    dbPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+    });
+  } catch {
+    dbPool = null;
+  }
+}
 
-// Seed Initial Admin User (Pre-verified)
-const defaultHash = bcrypt.hashSync('Password123!', 10);
-const defaultAdmin: UserRecord = {
-  id: 'usr_admin_01',
-  email: 'mvairamuthu2003@ciphernest.ai',
-  name: 'mvairamuthu2003',
-  organization: 'Cyber Deception Ops',
-  role: 'admin',
-  passwordHash: defaultHash,
-  isVerified: true,
-  createdAt: new Date().toISOString(),
-};
-userStore.set(defaultAdmin.email.toLowerCase(), defaultAdmin);
+// In-Memory User Store (Empty runtime store, NO HARDCODED INITIAL SEEDS)
+const runtimeUserStore: Map<string, UserRecord> = new Map();
+const runtimeResetStore: Map<string, { email: string; expiresAt: number }> = new Map();
+
+// Helper to initialize PostgreSQL tables
+async function ensureTablesExist() {
+  if (!dbPool) return;
+  try {
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(64) PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        organization VARCHAR(255) NOT NULL,
+        role VARCHAR(32) NOT NULL DEFAULT 'admin',
+        password_hash TEXT NOT NULL,
+        is_verified BOOLEAN DEFAULT FALSE,
+        otp_code VARCHAR(16),
+        otp_expires_at BIGINT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS password_resets (
+        token VARCHAR(128) PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        expires_at BIGINT NOT NULL
+      );
+    `);
+  } catch (err) {
+    console.error('PostgreSQL Table Init Notice:', err);
+  }
+}
+
+// Fire table check non-blocking
+ensureTablesExist().catch(() => {});
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -90,8 +123,33 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
   }
 }
 
-export function findUserByEmail(email: string): UserRecord | undefined {
-  return userStore.get(email.toLowerCase());
+export async function findUserByEmail(email: string): Promise<UserRecord | undefined> {
+  const normalized = email.toLowerCase();
+
+  if (dbPool) {
+    try {
+      const res = await dbPool.query('SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1', [normalized]);
+      if (res.rows.length > 0) {
+        const row = res.rows[0];
+        return {
+          id: row.id,
+          email: row.email,
+          name: row.name,
+          organization: row.organization,
+          role: row.role,
+          passwordHash: row.password_hash,
+          isVerified: row.is_verified,
+          otpCode: row.otp_code,
+          otpExpiresAt: row.otp_expires_at ? Number(row.otp_expires_at) : undefined,
+          createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+        };
+      }
+    } catch {
+      // Fallthrough
+    }
+  }
+
+  return runtimeUserStore.get(normalized);
 }
 
 export async function registerPendingUserAccount(data: {
@@ -102,7 +160,7 @@ export async function registerPendingUserAccount(data: {
 }): Promise<{ email: string; otpCode: string }> {
   const normalizedEmail = data.email.toLowerCase();
 
-  const existing = userStore.get(normalizedEmail);
+  const existing = await findUserByEmail(normalizedEmail);
   if (existing && existing.isVerified) {
     throw new Error('An account with this email address already exists and is verified.');
   }
@@ -110,12 +168,34 @@ export async function registerPendingUserAccount(data: {
   const passwordHash = await hashPassword(data.password);
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpiresAt = Date.now() + 1000 * 60 * 10; // 10 minutes
+  const userId = existing?.id || `usr_${Date.now().toString(36)}`;
+  const organization = data.organization || 'SecOps Team';
 
+  if (dbPool) {
+    try {
+      await dbPool.query(
+        `INSERT INTO users (id, email, name, organization, role, password_hash, is_verified, otp_code, otp_expires_at)
+         VALUES ($1, $2, $3, $4, 'admin', $5, false, $6, $7)
+         ON CONFLICT (email) DO UPDATE SET
+           name = EXCLUDED.name,
+           organization = EXCLUDED.organization,
+           password_hash = EXCLUDED.password_hash,
+           otp_code = EXCLUDED.otp_code,
+           otp_expires_at = EXCLUDED.otp_expires_at`,
+        [userId, normalizedEmail, data.name, organization, passwordHash, otpCode, otpExpiresAt]
+      );
+      return { email: normalizedEmail, otpCode };
+    } catch (err: any) {
+      console.error('PostgreSQL Register Error:', err);
+    }
+  }
+
+  // Runtime store fallback if DB is not attached
   const pendingUser: UserRecord = {
-    id: existing?.id || `usr_${Date.now().toString(36)}`,
+    id: userId,
     email: normalizedEmail,
     name: data.name,
-    organization: data.organization || 'SecOps Team',
+    organization,
     role: 'admin',
     passwordHash,
     isVerified: false,
@@ -124,7 +204,7 @@ export async function registerPendingUserAccount(data: {
     createdAt: new Date().toISOString(),
   };
 
-  userStore.set(normalizedEmail, pendingUser);
+  runtimeUserStore.set(normalizedEmail, pendingUser);
   return { email: normalizedEmail, otpCode };
 }
 
@@ -133,7 +213,7 @@ export async function verifyUserOtp(data: {
   otpCode: string;
 }): Promise<{ user: UserProfile; token: string }> {
   const normalizedEmail = data.email.toLowerCase();
-  const user = userStore.get(normalizedEmail);
+  const user = await findUserByEmail(normalizedEmail);
 
   if (!user) {
     throw new Error('User registration record not found.');
@@ -153,11 +233,22 @@ export async function verifyUserOtp(data: {
     throw new Error('OTP code has expired. Please request a new verification code.');
   }
 
-  // Mark account as verified
   user.isVerified = true;
   delete user.otpCode;
   delete user.otpExpiresAt;
-  userStore.set(normalizedEmail, user);
+
+  if (dbPool) {
+    try {
+      await dbPool.query(
+        `UPDATE users SET is_verified = true, otp_code = NULL, otp_expires_at = NULL WHERE LOWER(email) = $1`,
+        [normalizedEmail]
+      );
+    } catch (err) {
+      console.error('PostgreSQL Verify Error:', err);
+    }
+  }
+
+  runtimeUserStore.set(normalizedEmail, user);
 
   const { passwordHash: _, ...profile } = user;
   const token = await createSessionToken(profile);
@@ -166,7 +257,7 @@ export async function verifyUserOtp(data: {
 
 export async function resendUserOtp(email: string): Promise<string> {
   const normalizedEmail = email.toLowerCase();
-  const user = userStore.get(normalizedEmail);
+  const user = await findUserByEmail(normalizedEmail);
 
   if (!user) {
     throw new Error('User registration record not found.');
@@ -177,9 +268,23 @@ export async function resendUserOtp(email: string): Promise<string> {
   }
 
   const newOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const newExpiresAt = Date.now() + 1000 * 60 * 10;
+
+  if (dbPool) {
+    try {
+      await dbPool.query(
+        `UPDATE users SET otp_code = $1, otp_expires_at = $2 WHERE LOWER(email) = $3`,
+        [newOtpCode, newExpiresAt, normalizedEmail]
+      );
+      return newOtpCode;
+    } catch {
+      // Fallthrough
+    }
+  }
+
   user.otpCode = newOtpCode;
-  user.otpExpiresAt = Date.now() + 1000 * 60 * 10;
-  userStore.set(normalizedEmail, user);
+  user.otpExpiresAt = newExpiresAt;
+  runtimeUserStore.set(normalizedEmail, user);
 
   return newOtpCode;
 }
@@ -189,7 +294,7 @@ export async function authenticateUserLogin(data: {
   password: string;
 }): Promise<{ user: UserProfile; token: string }> {
   const normalizedEmail = data.email.toLowerCase();
-  const userRecord = userStore.get(normalizedEmail);
+  const userRecord = await findUserByEmail(normalizedEmail);
 
   if (!userRecord) {
     throw new Error('Invalid email or password.');
@@ -200,28 +305,37 @@ export async function authenticateUserLogin(data: {
     throw new Error('Invalid email or password.');
   }
 
-  const { passwordHash: _, ...profile } = userRecord;
+  const { passwordHash: _, otpCode: __, otpExpiresAt: ___, ...profile } = userRecord;
   const token = await createSessionToken(profile);
 
   return { user: profile, token };
 }
 
-export function getAdminUserEmails(): string[] {
+export async function getAdminUserEmails(): Promise<string[]> {
+  if (dbPool) {
+    try {
+      const res = await dbPool.query("SELECT email FROM users WHERE role = 'admin' AND email IS NOT NULL");
+      if (res.rows.length > 0) {
+        return res.rows.map((r: { email: string }) => r.email);
+      }
+    } catch {
+      // Fallthrough
+    }
+  }
+
   const adminEmails: string[] = [];
-  for (const user of userStore.values()) {
+  for (const user of runtimeUserStore.values()) {
     if (user.role === 'admin' && user.email) {
       adminEmails.push(user.email);
     }
   }
-  return adminEmails.length > 0 ? adminEmails : ['mvairamuthu2003@ciphernest.ai'];
-}
 
-// Reset Token Store (token -> { email, expiresAt })
-const resetTokenStore: Map<string, { email: string; expiresAt: number }> = new Map();
+  return adminEmails;
+}
 
 export async function createPasswordResetToken(email: string): Promise<string> {
   const normalized = email.toLowerCase();
-  const user = userStore.get(normalized);
+  const user = await findUserByEmail(normalized);
   if (!user) {
     throw new Error('No user account found with that email address.');
   }
@@ -229,31 +343,75 @@ export async function createPasswordResetToken(email: string): Promise<string> {
   const token = `rst_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
   const expiresAt = Date.now() + 1000 * 60 * 60; // 1 hour validity
 
-  resetTokenStore.set(token, { email: normalized, expiresAt });
+  if (dbPool) {
+    try {
+      await dbPool.query(
+        `INSERT INTO password_resets (token, email, expires_at) VALUES ($1, $2, $3)`,
+        [token, normalized, expiresAt]
+      );
+      return token;
+    } catch {
+      // Fallthrough
+    }
+  }
+
+  runtimeResetStore.set(token, { email: normalized, expiresAt });
   return token;
 }
 
 export async function resetUserPassword(token: string, newPassword: string): Promise<boolean> {
-  const record = resetTokenStore.get(token);
-  if (!record) {
+  let email: string | null = null;
+  let expiresAt: number | null = null;
+
+  if (dbPool) {
+    try {
+      const res = await dbPool.query('SELECT * FROM password_resets WHERE token = $1 LIMIT 1', [token]);
+      if (res.rows.length > 0) {
+        email = res.rows[0].email;
+        expiresAt = Number(res.rows[0].expires_at);
+      }
+    } catch {
+      // Fallthrough
+    }
+  }
+
+  if (!email) {
+    const record = runtimeResetStore.get(token);
+    if (record) {
+      email = record.email;
+      expiresAt = record.expiresAt;
+    }
+  }
+
+  if (!email || !expiresAt) {
     throw new Error('Invalid or expired password reset link.');
   }
 
-  if (Date.now() > record.expiresAt) {
-    resetTokenStore.delete(token);
+  if (Date.now() > expiresAt) {
+    if (dbPool) {
+      await dbPool.query('DELETE FROM password_resets WHERE token = $1', [token]).catch(() => {});
+    }
+    runtimeResetStore.delete(token);
     throw new Error('Password reset link has expired. Please request a new one.');
   }
 
-  const user = userStore.get(record.email);
-  if (!user) {
-    throw new Error('User account not found.');
+  const passwordHash = await hashPassword(newPassword);
+
+  if (dbPool) {
+    try {
+      await dbPool.query('UPDATE users SET password_hash = $1 WHERE LOWER(email) = $2', [passwordHash, email]);
+      await dbPool.query('DELETE FROM password_resets WHERE token = $1', [token]);
+    } catch {
+      // Fallthrough
+    }
   }
 
-  user.passwordHash = await hashPassword(newPassword);
-  userStore.set(record.email, user);
-  resetTokenStore.delete(token);
+  const user = runtimeUserStore.get(email);
+  if (user) {
+    user.passwordHash = passwordHash;
+    runtimeUserStore.set(email, user);
+  }
+  runtimeResetStore.delete(token);
 
   return true;
 }
-
-

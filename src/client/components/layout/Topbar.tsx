@@ -17,9 +17,10 @@ export const Topbar: React.FC<TopbarProps> = ({
 }) => {
   const [ollamaStatus, setOllamaStatus] = useState<{ available: boolean; model: string }>({
     available: true,
-    model: 'llama3.1:8b',
+    model: 'opencode/mimo-v2.5-free',
   });
   const [environment, setEnvironment] = useState('Local Air-Gapped Cluster');
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role: string } | null>(null);
 
   useEffect(() => {
     async function checkHealth() {
@@ -33,7 +34,19 @@ export const Topbar: React.FC<TopbarProps> = ({
         // fallback
       }
     }
+    async function loadUser() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json() as { user?: { name: string; email: string; role: string } };
+          if (data.user) setCurrentUser(data.user);
+        }
+      } catch {
+        // fallback
+      }
+    }
     checkHealth();
+    loadUser();
   }, []);
 
   return (
@@ -105,14 +118,18 @@ export const Topbar: React.FC<TopbarProps> = ({
 
         <div className="h-6 w-[1px] bg-slate-200 hidden sm:block" />
 
-        {/* User Profile Badge */}
+        {/* Dynamic User Profile Badge */}
         <div className="flex items-center gap-2.5 pl-1">
           <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs border border-indigo-400/40">
             <RiUser3Line className="w-4 h-4" />
           </div>
           <div className="hidden lg:block text-left">
-            <h4 className="text-xs font-bold text-slate-900 leading-tight">mvairamuthu2003</h4>
-            <span className="text-[10px] text-slate-400 font-mono tracking-wider block font-semibold uppercase">ADMIN</span>
+            <h4 className="text-xs font-bold text-slate-900 leading-tight">
+              {currentUser ? currentUser.name : 'Security Analyst'}
+            </h4>
+            <span className="text-[10px] text-slate-400 font-mono tracking-wider block font-semibold uppercase">
+              {currentUser ? currentUser.role : 'ANALYST'}
+            </span>
           </div>
         </div>
       </div>
