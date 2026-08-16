@@ -18,15 +18,18 @@ export async function POST(req: Request) {
     const { email, otpCode } = await registerPendingUserAccount(parsed);
 
     // Dispatch OTP verification email
-    await sendRegistrationOTPEmail(email, otpCode);
+    const emailSent = await sendRegistrationOTPEmail(email, otpCode);
+    console.log(`[REGISTER OTP DISPATCH]: Email to ${email} | Sent: ${emailSent} | OTP: ${otpCode}`);
 
     return NextResponse.json({
       success: true,
       requiresOtp: true,
       email,
-      otpCode, // Returned for dev testing convenience
+      emailSent,
+      otpCode, // Included for dev testing verification
     });
   } catch (error: any) {
+    console.error('[REGISTER API ERROR]:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Registration failed' },
       { status: 400 }

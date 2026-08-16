@@ -6,7 +6,7 @@ const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
 const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
-const SMTP_FROM = process.env.SMTP_FROM || 'CipherNest Security <alerts@ciphernest.ai>';
+const SMTP_FROM = process.env.SMTP_FROM || (SMTP_USER ? `CipherNest Security <${SMTP_USER}>` : 'CipherNest Security <alerts@ciphernest.ai>');
 
 function createTransporter() {
   return nodemailer.createTransport({
@@ -16,6 +16,9 @@ function createTransporter() {
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
     },
   });
 }
@@ -161,7 +164,8 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
       `,
     });
     return true;
-  } catch {
+  } catch (err: any) {
+    console.error('Password Reset Nodemailer Error:', err?.message || err);
     return false;
   }
 }
@@ -170,7 +174,7 @@ export async function sendRegistrationOTPEmail(email: string, otpCode: string): 
   const transporter = createTransporter();
 
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: SMTP_FROM,
       to: email,
       subject: `🔑 [CipherNest] ${otpCode} is your Email Verification Code`,
@@ -198,8 +202,10 @@ export async function sendRegistrationOTPEmail(email: string, otpCode: string): 
         </div>
       `,
     });
+    console.log(`[CipherNest Email Sent Successfully]: Message ID ${info.messageId} to ${email}`);
     return true;
-  } catch {
+  } catch (err: any) {
+    console.error('Registration OTP Nodemailer Error:', err?.message || err);
     return false;
   }
 }
