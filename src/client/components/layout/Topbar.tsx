@@ -52,8 +52,8 @@ export const Topbar: React.FC<TopbarProps> = ({
   return (
     <header
       className={cn(
-        'h-16 fixed top-0 right-0 z-30 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between font-sans transition-[left] duration-200 ease-in-out shadow-xs',
-        collapsed ? 'left-0 lg:left-16' : 'left-0 lg:left-64'
+        'h-16 fixed top-0 right-0 z-30 bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:pl-8 lg:pr-6 flex items-center justify-between font-sans transition-[left] duration-200 ease-in-out shadow-xs',
+        collapsed ? 'left-0 lg:left-20' : 'left-0 lg:left-64'
       )}
     >
       <div className="flex items-center gap-3">
