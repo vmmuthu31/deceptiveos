@@ -1,12 +1,56 @@
 # CipherNest
 
-**Private Cyber Threat Intelligence Network Powered by AI Deception and STRK20**
+**Hybrid Local-First Security Platform & STRK20 Shielded Deception Network**
 
-> *"A privacy-preserving immune system for the age of autonomous cyberattacks. Trap autonomous attackers. Learn their behavioral identity. Share intelligence without exposing the victim. Reward discoveries privately."*
+> *"CipherNest is a local-first cyber defense platform with a browser-based operations console, a defender-controlled security agent (Electron + Docker), OpenCode AI (`opencode/mimo-v2.5-free`), and a privacy-preserving Starknet coordination layer."*
 
-CipherNest is an **Adversarial AI Defense Engine & Private Cyber Deception Network** built with Next.js (App Router), TypeScript, Tailwind CSS v4, OpenCode AI (`opencode/mimo-v2.5-free`), and Starknet STRK20 zero-knowledge privacy settlement. It deploys adaptive digital twin decoys, generates semantically authentic lure documents with steganographic tracking watermarks, fingerprints attacker identity across sessions, and enables private, zero-knowledge threat bounties to counter autonomous AI-driven attack agents.
+CipherNest bridges enterprise local-first security controls with zero-knowledge economic coordination. It deploys containerized digital twin decoys, generates semantically authentic lure documents with steganographic tracking watermarks, fingerprints attacker identity across sessions, and enables private, zero-knowledge threat bounties to counter autonomous AI-driven attack agents — keeping raw defender telemetry 100% local on defender machines.
 
 📖 **Detailed Technical Spec**: See [`STRK20_INTEGRATION.md`](./STRK20_INTEGRATION.md) for full Starknet contract architecture and transaction lifecycle details.
+
+---
+
+## 🏛️ Hybrid Platform Architecture
+
+```
+                    CIPHERNEST HYBRID PLATFORM
+                                │
+             ┌──────────────────┴──────────────────┐
+             │                                     │
+       WEB COMMAND CENTER                   DESKTOP DEFENDER AGENT
+       Next.js Operations Console           Electron + Node.js Engine
+             │                                     │
+             ├── Private Threat Network            ├── Containerized Honeypots (Docker)
+             ├── STRK20 GhostBounties              ├── Living Digital Twin Scanner
+             ├── Private Treasury                  ├── Steganographic Lure Generator
+             └── Compliance Audit Ledger           ├── Attacker DNA Fingerprint Engine
+                                                   └── OpenCode AI Inference
+             │                                     │
+             └──────────────────┬──────────────────┘
+                                │
+                         Privacy Gateway
+                                │
+                     ┌──────────┴──────────┐
+                     │                     │
+               Threat Network          Starknet
+               Anonymized CTI          STRK20
+                     │                     │
+                     └──────────┬──────────┘
+                                │
+                          GhostBounty
+                                │
+                           Researcher
+```
+
+### 🖥️ Local/Desktop Defender Agent (Electron + Docker)
+- **Container Isolation**: Deploys isolated Docker decoys (`ciphernest-honeypot`, `ciphernest-twin`) so compromised decoy processes cannot access defender host Node.js environments.
+- **Local Telemetry Boundary**: Raw filesystem paths (`/home/company/...`), hostnames, and command logs never leave defender machines.
+- **OpenCode AI Inference Engine**: Uses `opencode/mimo-v2.5-free` to synthesize dynamic SSH terminal responses with realistic timing jitter (50–800ms) and output entropy.
+
+### 🌐 Web Command Center (Next.js App Router)
+- **Operations Console**: Provides real-time event feeds, terminal replay, and decoy fleet management.
+- **Private Attacker Network**: Correlates anonymized threat signatures (`DNA: 7F-A2-91`) across participating defenders without revealing victim identities.
+- **GhostBounty Marketplace & STRK20 Treasury**: Enables defenders to fund bounties privately and researchers to claim rewards anonymously using Starknet STRK20 zero-knowledge notes.
 
 ---
 
@@ -33,22 +77,6 @@ CipherNest is an **Adversarial AI Defense Engine & Private Cyber Deception Netwo
 1. **Defender (Funder)**: Traps autonomous attackers in AI digital twins, extracts Attacker DNA (`DNA: 7F-A2-91`), and funds a GhostBounty in shielded STRK20. The defender's wallet address and organization identity remain completely hidden on-chain.
 2. **Researcher (Claimant)**: Discovers matching threat intelligence (C2 IP addresses, payload signatures, campaign targets) and claims the bounty anonymously. STRK20 transfers shielded tokens directly to the researcher's private balance.
 3. **Intelligence Network (Receiver)**: Receives anonymized, zero-knowledge threat correlation signatures that protect all participating defenders against identical autonomous AI attack campaigns.
-
----
-
-## 🚀 The 4 Product Modules
-
-### 1. 🤖 DECEIVE — Adaptive AI Digital Twins & Attacker Traps
-Honeypots designed specifically to defeat autonomous AI attack agents. OpenCode AI (`opencode/mimo-v2.5-free`) generates contextually dynamic terminal responses with realistic timing jitter (50–800ms) and statistically authentic command outputs while read-only scanners mirror host OS, services, and directory states.
-
-### 2. 🧬 FINGERPRINT — Attacker DNA & Cross-Session Identity
-Builds a cross-session behavioral fingerprint from command execution velocity, tool signatures, typo frequencies, and estimated timezones mapped against MITRE ATT&CK TTPs (`DNA: 7F-A2-91`).
-
-### 3. 🌐 COORDINATE — Private Threat Intelligence Network
-A zero-knowledge threat graph that correlates anonymized attacker fingerprints across participating defenders without exposing who was attacked, organization names, or victim IP addresses.
-
-### 4. 🛡️ REWARD — GhostBounties Powered by STRK20
-When an unknown or high-severity Attacker DNA fingerprint is trapped, security teams fund private threat intelligence bounties (`250 STRK SHIELDED`). Security researchers submit matching campaign intelligence and claim rewards anonymously via STRK20 zero-knowledge privacy pools without exposing company identities, wallet addresses, or security incident details.
 
 ---
 
@@ -81,13 +109,13 @@ CipherNest implements three core STRK20 mainnet transaction primitives:
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  CipherNest Next.js App Router (TypeScript + Tailwind)   │
+│  CipherNest Console (Next.js App Router + Electron Shell)│
 │  • Overview      • Honeypots   • Events     • DNA Alerts │
 │  • Lure Studio   • Bounties    • Treasury   • Network    │
 ├──────────────────────────────────────────────────────────┤
 │  Server API & Services (src/server/services/)            │
 │  • ai.service.ts         — OpenCode AI inference engine  │
-│  • honeypot.service.ts   — Container controls & twin sync│
+│  • honeypot.service.ts   — Docker container controls     │
 │  • lure.service.ts       — Steganographic token embedding│
 │  • fingerprint.service.ts— Attacker DNA classification   │
 │  • bounty.service.ts     — GhostBounty management        │

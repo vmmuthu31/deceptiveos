@@ -14,8 +14,8 @@ Traditional Cyber Threat Intelligence (CTI) sharing is broken due to a fundament
 2. **Researchers risk attribution**: Security researchers discovering C2 infrastructure cannot claim public bounties without linking their wallet identity to threat actor targets.
 3. **Fragmented Defense**: Organizations remain isolated, allowing autonomous AI attack agents to reuse the same TTPs across multiple targets without early correlation.
 
-### The Solution: CipherNest STRK20 Economic Coordination Layer
-CipherNest uses **Starknet STRK20 Zero-Knowledge Shielded Balances and Private Transfers** to decouple threat intelligence funding from organizational and wallet identity.
+### The Solution: CipherNest Hybrid Platform & STRK20 Economic Coordination Layer
+CipherNest uses a **Hybrid Desktop Agent (Electron + Docker)** and **Starknet STRK20 Zero-Knowledge Shielded Balances** to decouple threat intelligence funding from organizational and wallet identity.
 
 ```
                           CIPHERNEST THREAT LOOP
@@ -35,7 +35,32 @@ CipherNest uses **Starknet STRK20 Zero-Knowledge Shielded Balances and Private T
 
 ---
 
-## 2. The 3 Economic Roles
+## 2. Telemetry Isolation & Privacy Boundary
+
+Raw defender environment telemetry stays 100% local inside defender machines:
+
+```
+LOCAL DEFENDER ENVIRONMENT (DESKTOP AGENT)
+─────────────────────────────────────────
+Real Filesystem     (/home/company/...)
+Real Hostnames      (prod-db-01.acme.local)
+Real Command Logs   (cat /etc/shadow)
+Raw Attacker Session
+       │
+       │ Local Processing (Attacker DNA Engine)
+       ▼
+Attacker DNA        (DNA: 7F-A2-91)
+MITRE TTPs          (T1059.004 / T1083)
+Commitment Hash     (0x8a729c18...)
+       │
+       │ Privacy Gateway
+       ▼
+PUBLIC NETWORK & STARKNET STRK20 POOL
+```
+
+---
+
+## 3. The 3 Economic Roles
 
 CipherNest creates a self-sustaining network effect across three distinct economic participants:
 
@@ -75,7 +100,7 @@ CipherNest creates a self-sustaining network effect across three distinct econom
 
 ---
 
-## 3. Privacy Threat Model & Guarantees
+## 4. Privacy Threat Model & Guarantees
 
 | Data Element | Public On-Chain | Private Shielded (CipherNest + STRK20) |
 | :--- | :--- | :--- |
@@ -87,7 +112,7 @@ CipherNest creates a self-sustaining network effect across three distinct econom
 
 ---
 
-## 4. STRK20 Transaction Lifecycle
+## 5. STRK20 Transaction Lifecycle
 
 CipherNest implements three core STRK20 mainnet transaction primitives:
 
@@ -111,7 +136,7 @@ Converts shielded UTXO balances back to public wallet addresses for operational 
 
 ---
 
-## 5. Judge Execution & Reproduction Guide
+## 6. Judge Execution & Reproduction Guide
 
 Hackathon judges can test the end-to-end mainnet flow directly from the CipherNest UI:
 
@@ -126,7 +151,7 @@ Hackathon judges can test the end-to-end mainnet flow directly from the CipherNe
 
 ---
 
-## 6. Project Verification Summary
+## 7. Project Verification Summary
 
 - **ESLint & TypeScript**: `bun run lint` (`tsc --noEmit && eslint .`) ➔ **Passed (0 Errors, 0 Warnings)**.
 - **Metadata Spec**: [`strk20.json`](./strk20.json) (Category: `Infra`).
