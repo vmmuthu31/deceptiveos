@@ -13,8 +13,11 @@ import {
   RiFileShield2Line,
   RiFingerprintLine,
   RiLogoutBoxRLine,
+  RiNodeTree,
+  RiSafe2Line,
   RiSettings4Line,
-  RiShieldCrossLine
+  RiShieldCrossLine,
+  RiShieldKeyholeLine
 } from 'react-icons/ri';
 
 interface NavSection {
@@ -36,6 +39,14 @@ const navSections: NavSection[] = [
     items: [
       { label: 'Attacker DNA', href: '/alerts', icon: RiAlertLine },
       { label: 'Lure Studio', href: '/lures', icon: RiFileShield2Line },
+    ],
+  },
+  {
+    title: 'PRIVACY OPERATIONS',
+    items: [
+      { label: 'GhostBounties', href: '/bounties', icon: RiShieldKeyholeLine },
+      { label: 'Private Treasury', href: '/treasury', icon: RiSafe2Line },
+      { label: 'Threat Network', href: '/network', icon: RiNodeTree },
     ],
   },
   {

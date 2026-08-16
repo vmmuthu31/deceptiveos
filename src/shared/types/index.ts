@@ -113,3 +113,51 @@ export interface ComplianceSummary {
   immutableAuditLogHeight: number;
   lastAuditExportAt: string;
 }
+
+export interface GhostBountyItem {
+  id: string;
+  dnaFingerprint: string;
+  title: string;
+  description: string;
+  rewardStrk: number;
+  shieldedStatus: 'SHIELDED' | 'UNSHIELDED' | 'CLAIMED';
+  confidenceScore: number;
+  matchedCampaignsCount: number;
+  mitreTtps: string[];
+  createdAt: string;
+  fundedTxHash?: string;
+  claimantHash?: string;
+}
+
+export interface TreasuryTx {
+  id: string;
+  type: 'SHIELD' | 'PRIVATE_TRANSFER' | 'UNSHIELD';
+  amountStrk: number;
+  txHash: string;
+  utxoCommitment: string;
+  status: 'CONFIRMED' | 'PENDING';
+  timestamp: string;
+  memo: string;
+}
+
+export interface PrivateTreasuryState {
+  publicWalletAddress: string;
+  publicBalanceStrk: number;
+  shieldedBalanceStrk: number;
+  committedBountyStrk: number;
+  availableShieldedStrk: number;
+  transactions: TreasuryTx[];
+}
+
+export interface AnonymizedThreatNode {
+  id: string;
+  anonymousDna: string;
+  threatLevel: 'Critical' | 'High' | 'Medium' | 'Low';
+  toolSignature: string;
+  mitreTechniques: string[];
+  contributingDefendersCount: number;
+  botProbability: number;
+  firstSeenAt: string;
+  lastActiveAt: string;
+}
+
