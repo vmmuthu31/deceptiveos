@@ -1,5 +1,7 @@
 {
-  "project_name": "CipherNest - STRK20 Adversarial AI Cyber Deception Engine",
+  "project_name": "CipherNest",
+  "one_liner": "Adversarial AI Cyber Deception Engine deploying living digital twin decoys, steganographic canary lures, and zero-knowledge audit trails for Starknet.",
+  "category": "Infra",
   "description": "Adversarial AI Cyber Deception Engine deploying living digital twin decoys, steganographic canary lures, and zero-knowledge shielded audit trails to trap autonomous AI attack agents on Starknet.",
   "repository": "https://github.com/vmmuthu31/deceptiveos",
   "transactions": [],
