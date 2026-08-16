@@ -1,9 +1,41 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const { exec } = require('child_process');
-const path = require('path');
 
 let mainWindow;
+let tray;
+
+function createTray() {
+  const iconDataUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA6SURBVDhPY2AYBaNgFIyC4QYgBsb/gfg/EDcAcQAQzwBiBhDGASAWAGIGIOYAYjgAMdCgUTAKRsEoAAEAiH4FBc3zHcwAAAAASUVORK5CYII=';
+  const icon = nativeImage.createFromDataURL(iconDataUri);
+
+  tray = new Tray(icon);
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'CipherNest: Protected 🛡️', enabled: false },
+    { type: 'separator' },
+    {
+      label: 'Open Operations Console',
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      },
+    },
+    { label: 'Active Decoys: 2 Active Containers', enabled: false },
+    { label: 'Starknet STRK20 Pool: Active', enabled: false },
+    { type: 'separator' },
+    {
+      label: 'Quit CipherNest',
+      click: () => {
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setToolTip('CipherNest — Private Cyber Defense Console');
+  tray.setContextMenu(contextMenu);
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -45,7 +77,10 @@ ipcMain.handle('check-docker-status', async () => {
   });
 });
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+  createTray();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
