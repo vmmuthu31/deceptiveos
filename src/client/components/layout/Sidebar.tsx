@@ -84,9 +84,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <aside
         className={cn(
-          'fixed left-0 top-0 h-screen bg-white border-r border-slate-200/80 flex flex-col z-50 font-sans transition-all duration-200 ease-in-out shadow-xs relative',
+          'bg-white border-r border-slate-200/80 flex flex-col z-40 font-sans transition-all duration-200 ease-in-out shadow-xs relative shrink-0 h-full',
           collapsed ? 'w-20' : 'w-64',
-          mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
+          mobileOpen
+            ? 'fixed inset-y-0 left-0 z-50 w-64 translate-x-0'
+            : 'fixed lg:relative -translate-x-full lg:translate-x-0 inset-y-0 left-0'
         )}
       >
         {/* Floating Desktop Collapse Toggle (EAK Digital Style) */}

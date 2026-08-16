@@ -2,7 +2,6 @@
 
 import { Sidebar } from '@/client/components/layout/Sidebar';
 import { Topbar } from '@/client/components/layout/Topbar';
-import { cn } from '@/client/lib/utils';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
@@ -35,8 +34,8 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-indigo-500 selection:text-white">
-      {/* Sidebar Component */}
+    <div className="flex h-screen min-h-dvh overflow-hidden bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+      {/* App Sidebar */}
       <Sidebar
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}
@@ -44,25 +43,22 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
         onCloseMobile={() => setMobileOpen(false)}
       />
 
-      {/* Topbar Component */}
-      <Topbar
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        onOpenMobile={() => setMobileOpen(true)}
-      />
+      {/* Main Workspace Column */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col relative bg-[#F8FAFC]">
+        {/* Topbar Header */}
+        <Topbar
+          collapsed={collapsed}
+          onToggleCollapse={() => setCollapsed(!collapsed)}
+          onOpenMobile={() => setMobileOpen(true)}
+        />
 
-      {/* Main Content Area */}
-      <main
-        className={cn(
-          'pt-20 min-h-screen transition-[padding] duration-200 ease-in-out p-4 sm:p-6 lg:py-6 lg:pr-8',
-          collapsed ? 'lg:pl-24' : 'lg:pl-70'
-        )}
-      >
-        <div className="w-full space-y-6">
-          {children}
-        </div>
-      </main>
+        {/* Main Workspace Scroll View */}
+        <main className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-hidden bg-[#F8FAFC]">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 lg:p-8 space-y-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
-

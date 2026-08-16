@@ -50,12 +50,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   }, []);
 
   return (
-    <header
-      className={cn(
-        'h-16 fixed top-0 right-0 z-30 bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:pl-8 lg:pr-6 flex items-center justify-between font-sans transition-[left] duration-200 ease-in-out shadow-xs',
-        collapsed ? 'left-0 lg:left-20' : 'left-0 lg:left-64'
-      )}
-    >
+    <header className="h-16 shrink-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between font-sans z-30 shadow-xs">
       <div className="flex items-center gap-3">
         {/* Mobile Menu Toggle */}
         {onOpenMobile && (
