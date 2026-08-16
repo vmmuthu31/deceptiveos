@@ -13,7 +13,7 @@ interface EventFeedProps {
 
 export const EventFeed: React.FC<EventFeedProps> = ({ events, onSelectEvent }) => {
   return (
-    <div className="space-y-2.5 font-sans">
+    <div className="space-y-3 font-sans">
       {events.map((evt) => {
         const getKindBadge = () => {
           switch (evt.kind) {
@@ -32,34 +32,36 @@ export const EventFeed: React.FC<EventFeedProps> = ({ events, onSelectEvent }) =
           <div
             key={evt.id}
             onClick={() => onSelectEvent?.(evt)}
-            className="p-3.5 rounded-lg bg-[#131B2E] border border-[#1E293B] hover:border-[#3B82F6]/50 transition-colors cursor-pointer group"
+            className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2.5">
-                <RiCommandLine className="w-4 h-4 text-indigo-400" />
-                <span className="font-mono text-xs text-slate-200 font-semibold">{evt.honeypotName}</span>
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <RiCommandLine className="w-4 h-4" />
+                </div>
+                <span className="font-mono text-xs text-slate-900 font-bold">{evt.honeypotName}</span>
                 {getKindBadge()}
               </div>
-              <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono">
+              <div className="flex items-center gap-1 text-xs text-slate-400 font-mono">
                 <RiTimeLine className="w-3.5 h-3.5" />
                 <span>{formatTimestamp(evt.timestamp)}</span>
               </div>
             </div>
 
-            <div className="bg-[#0B0E17] rounded p-2.5 border border-[#1E293B] font-mono text-xs text-emerald-400 overflow-x-auto leading-relaxed">
+            <div className="bg-slate-900 rounded-xl p-3 border border-slate-800 font-mono text-xs text-emerald-400 overflow-x-auto leading-relaxed shadow-inner">
               <span className="text-slate-500 select-none mr-2">$</span>
               {evt.payload}
             </div>
 
-            <div className="flex items-center justify-between mt-2.5 text-[11px] text-slate-400 font-mono">
+            <div className="flex items-center justify-between mt-3 text-xs text-slate-500 font-mono">
               <div className="flex items-center gap-1.5">
-                <RiGlobalLine className="w-3.5 h-3.5 text-indigo-400" />
-                <span className="text-slate-200 font-medium">{evt.attackerIp}</span>
-                <span className="text-slate-500">({evt.location})</span>
+                <RiGlobalLine className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="text-slate-800 font-semibold">{evt.attackerIp}</span>
+                <span className="text-slate-400">({evt.location})</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-1.5 py-0.5 rounded bg-[#1E293B] text-slate-300">T1059.004</span>
-                <span className="text-slate-500">Session #{evt.sessionId.slice(-6)}</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[10px]">T1059.004</span>
+                <span className="text-slate-400 text-[10px]">Session #{evt.sessionId.slice(-6)}</span>
               </div>
             </div>
           </div>
@@ -68,4 +70,5 @@ export const EventFeed: React.FC<EventFeedProps> = ({ events, onSelectEvent }) =
     </div>
   );
 };
+
 

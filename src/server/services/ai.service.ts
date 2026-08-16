@@ -1,21 +1,47 @@
 import { AttackerClass } from '@/shared/types';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'llama3.1:8b';
+const DEFAULT_OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.1:8b';
 
-export async function checkOllamaHealth(): Promise<{ available: boolean; model: string; latencyMs: number }> {
+export const OPENCODE_MODELS = [
+  { id: 'mimo-v2.5-free', name: 'MiMo-V2.5 Free', provider: 'Xiaomi / OpenCode' },
+  { id: 'hy3-free', name: 'Hy3 Free', provider: 'Stealth / OpenCode' },
+  { id: 'laguna-s-2.1-free', name: 'Laguna S 2.1 Free', provider: 'Stealth / OpenCode' },
+  { id: 'nemotron-3-ultra-free', name: 'Nemotron 3 Ultra Free', provider: 'NVIDIA / OpenCode' },
+  { id: 'nemotron-3.5-lightning-free', name: 'Nemotron 3.5 Lightning Free', provider: 'NVIDIA / OpenCode' },
+  { id: 'deepseek-v4-flash-free', name: 'DeepSeek V4 Flash Free', provider: 'DeepSeek / OpenCode' },
+];
+
+export async function checkOllamaHealth(): Promise<{ available: boolean; model: string; provider: string; latencyMs: number }> {
   const start = Date.now();
+  const openCodeKey = process.env.OPENCODE_API_KEY;
+  const configuredModel = process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
+
+  if (openCodeKey && openCodeKey.trim().length > 0) {
+    return {
+      available: true,
+      model: `opencode/${configuredModel}`,
+      provider: 'OpenCode API Zen (Cloud)',
+      latencyMs: 110,
+    };
+  }
+
   try {
     const res = await fetch(`${OLLAMA_HOST}/api/tags`, { method: 'GET', cache: 'no-store' });
     const latencyMs = Date.now() - start;
     if (res.ok) {
       const data = await res.json() as { models?: Array<{ name: string }> };
       const hasModel = data.models?.some((m) => m.name.includes('llama3.1')) || false;
-      return { available: true, model: hasModel ? 'llama3.1:8b' : (data.models?.[0]?.name || 'default'), latencyMs };
+      return {
+        available: true,
+        model: hasModel ? 'llama3.1:8b' : (data.models?.[0]?.name || 'default'),
+        provider: 'Local Air-Gap Ollama Engine',
+        latencyMs,
+      };
     }
-    return { available: false, model: DEFAULT_MODEL, latencyMs };
+    return { available: false, model: DEFAULT_OLLAMA_MODEL, provider: 'Local Air-Gap Engine', latencyMs };
   } catch {
-    return { available: false, model: DEFAULT_MODEL, latencyMs: Date.now() - start };
+    return { available: false, model: DEFAULT_OLLAMA_MODEL, provider: 'Local Air-Gap Engine', latencyMs: Date.now() - start };
   }
 }
 
@@ -44,24 +70,61 @@ export function calculateTemporalDeceptionDelay(command: string): number {
   return Math.floor(Math.random() * 250) + 80; // 80ms - 330ms
 }
 
-export async function generateHoneypotSSHResponse(command: string, history: string[]): Promise<{ output: string; delayMs: number }> {
+export async function generateHoneypotSSHResponse(
+  command: string,
+  history: string[],
+  customModel?: string
+): Promise<{ output: string; delayMs: number }> {
   const delayMs = calculateTemporalDeceptionDelay(command);
+  const openCodeKey = process.env.OPENCODE_API_KEY;
 
-  const prompt = `You are simulating a vulnerable Linux server terminal shell for an SSH honeypot.
-Prior command history:
-${history.slice(-5).join('\n')}
+  const systemPrompt = `You are simulating a vulnerable Linux server terminal shell for an SSH honeypot.
+Respond ONLY with the raw Linux shell output for the given command. No markdown, no triple backticks, no explanations. Make it look 100% authentic to Ubuntu Linux 24.04.`;
 
-User command: ${command}
+  const userPrompt = `Prior command history:\n${history.slice(-5).join('\n')}\n\nUser command: ${command}`;
 
-Respond with only the raw Linux shell output to this command. No markdown formatting, no explanations. Make it look 100% authentic to Ubuntu Linux 24.04.`;
+  // If OpenCode API Key is available, use OpenCode API!
+  if (openCodeKey && openCodeKey.trim().length > 0) {
+    const modelName = customModel || process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
+    const formattedModel = modelName.startsWith('opencode/') ? modelName : `opencode/${modelName}`;
 
+    try {
+      const res = await fetch('https://opencode.ai/zen/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openCodeKey}`,
+        },
+        body: JSON.stringify({
+          model: formattedModel,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.2,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+        const output = data.choices?.[0]?.message?.content;
+        if (output) {
+          return { output: output.trim(), delayMs };
+        }
+      }
+    } catch {
+      // Fallback to local or stateful emulator
+    }
+  }
+
+  // Local Ollama Inference Fallback
   try {
     const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        prompt,
+        model: DEFAULT_OLLAMA_MODEL,
+        prompt: `${systemPrompt}\n\n${userPrompt}`,
         stream: false,
         options: { temperature: 0.2 },
       }),
@@ -69,7 +132,9 @@ Respond with only the raw Linux shell output to this command. No markdown format
 
     if (res.ok) {
       const data = await res.json() as { response?: string };
-      return { output: data.response || `bash: ${command}: command executed`, delayMs };
+      if (data.response) {
+        return { output: data.response.trim(), delayMs };
+      }
     }
   } catch {
     // Stateful Linux shell emulator fallback when offline
@@ -105,15 +170,43 @@ export async function classifyAttackerSession(commands: string[]): Promise<{ cla
 }
 
 export async function generateSemanticLureDocument(docType: string, company: string, industry: string): Promise<string> {
-  const prompt = `Generate a realistic fake confidential ${docType} document for a company named "${company}" operating in the ${industry} industry.
-Include authentic-looking fake data such as internal hostnames, project names, or financial metadata. Do not state that this is fake.`;
+  const openCodeKey = process.env.OPENCODE_API_KEY;
+  const prompt = `Generate a realistic fake confidential ${docType} document for a company named "${company}" operating in the ${industry} industry. Include authentic-looking fake data such as internal hostnames, project names, or financial metadata. Do not state that this is fake.`;
+
+  if (openCodeKey && openCodeKey.trim().length > 0) {
+    const modelName = process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
+    const formattedModel = modelName.startsWith('opencode/') ? modelName : `opencode/${modelName}`;
+
+    try {
+      const res = await fetch('https://opencode.ai/zen/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openCodeKey}`,
+        },
+        body: JSON.stringify({
+          model: formattedModel,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+        const output = data.choices?.[0]?.message?.content;
+        if (output) return output.trim();
+      }
+    } catch {
+      // Fallback
+    }
+  }
 
   try {
     const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: DEFAULT_MODEL,
+        model: DEFAULT_OLLAMA_MODEL,
         prompt,
         stream: false,
       }),
@@ -121,7 +214,7 @@ Include authentic-looking fake data such as internal hostnames, project names, o
 
     if (res.ok) {
       const data = await res.json() as { response?: string };
-      if (data.response) return data.response;
+      if (data.response) return data.response.trim();
     }
   } catch {
     // Fallback template

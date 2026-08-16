@@ -2,7 +2,7 @@
 
 import { cn } from '@/client/lib/utils';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import {
   RiAlertLine,
@@ -12,6 +12,7 @@ import {
   RiDashboard3Line,
   RiFileShield2Line,
   RiFingerprintLine,
+  RiLogoutBoxRLine,
   RiSettings4Line,
   RiShieldCrossLine
 } from 'react-icons/ri';
@@ -23,22 +24,22 @@ interface NavSection {
 
 const navSections: NavSection[] = [
   {
-    title: 'SECURITY OPERATIONS',
+    title: 'PLATFORM',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: RiDashboard3Line },
+      { label: 'Overview', href: '/dashboard', icon: RiDashboard3Line },
       { label: 'Decoy Nodes', href: '/honeypots', icon: RiShieldCrossLine },
       { label: 'Threat Stream', href: '/events', icon: RiFingerprintLine },
     ],
   },
   {
-    title: 'DECEPTION ENGINE',
+    title: 'INTELLIGENCE',
     items: [
       { label: 'Attacker DNA', href: '/alerts', icon: RiAlertLine },
       { label: 'Lure Studio', href: '/lures', icon: RiFileShield2Line },
     ],
   },
   {
-    title: 'GOVERNANCE & AUDIT',
+    title: 'GOVERNANCE',
     items: [
       { label: 'Compliance & Audit', href: '/settings', icon: RiSettings4Line },
     ],
@@ -59,6 +60,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
 }) => {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+      router.refresh();
+    } catch {
+      router.push('/login');
+    }
+  };
 
   return (
     <>
@@ -66,35 +78,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {mobileOpen && (
         <div
           onClick={onCloseMobile}
-          className="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden transition-opacity"
         />
       )}
 
       <aside
         className={cn(
-          'fixed left-0 top-0 h-screen bg-[#0F1626] border-r border-[#1E293B] flex flex-col z-50 font-sans transition-all duration-200 ease-in-out',
+          'fixed left-0 top-0 h-screen bg-white border-r border-slate-200/80 flex flex-col z-50 font-sans transition-all duration-200 ease-in-out shadow-xs',
           collapsed ? 'w-16' : 'w-64',
-          // Mobile slide-out drawer positioning
           mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         )}
       >
         {/* Sidebar Header */}
-        <div className="p-3.5 border-b border-[#1E293B] flex items-center justify-between bg-[#0B0E17]">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded bg-indigo-600 flex-shrink-0 flex items-center justify-center text-white shadow-sm border border-indigo-400/40">
+        <div className="p-4 border-b border-slate-200/80 flex items-center justify-between bg-white">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex-shrink-0 flex items-center justify-center text-white shadow-xs">
               <RiShieldCrossLine className="w-5 h-5" />
             </div>
             {(!collapsed || mobileOpen) && (
               <div className="whitespace-nowrap transition-opacity">
                 <div className="flex items-center gap-1.5">
-                  <h1 className="font-bold text-xs tracking-wider text-slate-100 uppercase">
-                    CIPHER<span className="text-indigo-400">NEST</span>
+                  <h1 className="font-bold text-sm tracking-tight text-slate-900 uppercase">
+                    CIPHER<span className="text-indigo-600">NEST</span>
                   </h1>
-                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">
+                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-200/60 font-semibold">
                     v1.4
                   </span>
                 </div>
-                <p className="text-[9px] text-slate-400 font-mono tracking-tight">ADVERSARIAL AI DEFENSE</p>
+                <p className="text-[10px] text-slate-400 font-mono tracking-tight">ADVERSARIAL AI DEFENSE</p>
               </div>
             )}
           </div>
@@ -103,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {mobileOpen && (
             <button
               onClick={onCloseMobile}
-              className="lg:hidden p-1 rounded text-slate-400 hover:text-slate-100 hover:bg-[#1E293B] cursor-pointer"
+              className="lg:hidden p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 cursor-pointer"
             >
               <RiCloseLine className="w-5 h-5" />
             </button>
@@ -114,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onToggleCollapse}
               title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-              className="hidden lg:flex p-1 rounded text-slate-400 hover:text-slate-100 hover:bg-[#1E293B] cursor-pointer transition-colors"
+              className="hidden lg:flex p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 cursor-pointer transition-colors"
             >
               {collapsed ? <RiArrowRightSLine className="w-4 h-4" /> : <RiArrowLeftSLine className="w-4 h-4" />}
             </button>
@@ -122,15 +133,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation Sections */}
-        <nav className="flex-1 p-2.5 space-y-5 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 p-3 space-y-6 overflow-y-auto overflow-x-hidden">
           {navSections.map((section) => (
             <div key={section.title} className="space-y-1">
               {(!collapsed || mobileOpen) ? (
-                <h3 className="px-2.5 text-[9px] font-semibold text-slate-500 uppercase tracking-widest font-mono mb-1.5 whitespace-nowrap">
+                <h3 className="px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-widest font-mono mb-2 whitespace-nowrap">
                   {section.title}
                 </h3>
               ) : (
-                <div className="h-[1px] bg-[#1E293B] my-2 mx-1" />
+                <div className="h-[1px] bg-slate-200 my-2 mx-1" />
               )}
               {section.items.map((item) => {
                 const isActive = pathname === item.href || (pathname === '/' && item.href === '/dashboard');
@@ -142,14 +153,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={onCloseMobile}
                     title={collapsed && !mobileOpen ? item.label : undefined}
                     className={cn(
-                      'flex items-center gap-2.5 px-2.5 py-2 rounded text-xs font-medium transition-colors group relative',
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group relative',
                       isActive
-                        ? 'bg-indigo-950/50 text-indigo-300 border-l-2 border-indigo-500 font-semibold'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-[#1B2640]/50',
+                        ? 'bg-slate-900 text-white font-semibold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80',
                       collapsed && !mobileOpen ? 'justify-center px-2' : ''
                     )}
                   >
-                    <Icon className={cn('w-4 h-4 flex-shrink-0 transition-colors', isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-200')} />
+                    <Icon className={cn('w-4 h-4 flex-shrink-0 transition-colors', isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-700')} />
                     {(!collapsed || mobileOpen) && (
                       <span className="whitespace-nowrap transition-opacity">{item.label}</span>
                     )}
@@ -160,21 +171,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </nav>
 
-        {/* Footer Status */}
-        <div className="p-3 border-t border-[#1E293B] bg-[#0B0E17]">
+        {/* Footer Actions */}
+        <div className="p-3 border-t border-slate-200/80 bg-white">
           {(!collapsed || mobileOpen) ? (
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                  <span className="text-slate-300 text-[11px] font-medium">Air-Gap Local</span>
-                </div>
-                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#1E293B] text-slate-300">ONLINE</span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-mono mt-1">Ollama: llama3.1:8b</p>
-            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-600 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700 transition-colors font-medium cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                <span>Logout Session</span>
+              </span>
+              <RiLogoutBoxRLine className="w-4 h-4 text-slate-400 group-hover:text-rose-600" />
+            </button>
           ) : (
-            <div className="flex justify-center" title="Air-Gap Local Engine: ONLINE (llama3.1:8b)">
+            <div className="flex justify-center cursor-pointer" onClick={handleLogout} title="Click to Logout">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
             </div>
           )}
@@ -183,5 +194,3 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </>
   );
 };
-
-

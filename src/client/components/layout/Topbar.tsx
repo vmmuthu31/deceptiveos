@@ -1,9 +1,9 @@
 'use client';
 
-import { Badge } from '@/client/components/ui/Badge';
+import { Button } from '@/client/components/ui/Button';
 import { cn } from '@/client/lib/utils';
 import React, { useEffect, useState } from 'react';
-import { RiCpuLine, RiGlobalLine, RiMenuLine, RiPulseLine, RiSearchLine, RiShieldFlashLine } from 'react-icons/ri';
+import { RiAddLine, RiBellLine, RiCpuLine, RiGlobalLine, RiMenuLine, RiSearchLine, RiUser3Line } from 'react-icons/ri';
 
 interface TopbarProps {
   collapsed?: boolean;
@@ -39,67 +39,86 @@ export const Topbar: React.FC<TopbarProps> = ({
   return (
     <header
       className={cn(
-        'h-14 fixed top-0 right-0 z-30 bg-[#0F1626] border-b border-[#1E293B] px-4 sm:px-6 flex items-center justify-between font-sans transition-[left] duration-200 ease-in-out',
+        'h-16 fixed top-0 right-0 z-30 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between font-sans transition-[left] duration-200 ease-in-out shadow-xs',
         collapsed ? 'left-0 lg:left-16' : 'left-0 lg:left-64'
       )}
     >
       <div className="flex items-center gap-3">
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Toggle */}
         {onOpenMobile && (
           <button
             onClick={onOpenMobile}
             title="Open Menu"
-            className="lg:hidden p-1.5 rounded text-slate-300 hover:text-white hover:bg-[#1E293B] cursor-pointer"
+            className="lg:hidden p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
           >
             <RiMenuLine className="w-5 h-5" />
           </button>
         )}
 
-        {/* Environment Cluster Switcher */}
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 bg-[#0B0E17] px-2.5 py-1 rounded border border-[#1E293B]">
-          <RiGlobalLine className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
-          <select
-            value={environment}
-            onChange={(e) => setEnvironment(e.target.value)}
-            className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer font-medium pr-1"
-          >
-            <option value="Local Air-Gapped Cluster" className="bg-[#0F1626]">Air-Gapped Local</option>
-            <option value="Staging VPC Decoys" className="bg-[#0F1626]">Staging VPC (us-east-1)</option>
-            <option value="Production Decoy Fleet" className="bg-[#0F1626]">Production Fleet (eu-central-1)</option>
-          </select>
+        {/* Integrated Search Bar */}
+        <div className="flex items-center gap-2 bg-slate-100/90 border border-slate-200 px-3.5 py-1.5 rounded-xl text-xs text-slate-600 w-56 sm:w-64 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+          <RiSearchLine className="w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search pages, IPs, lures..."
+            className="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full"
+          />
+          <kbd className="hidden sm:inline text-[9px] font-mono bg-white text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">⌘K</kbd>
         </div>
-
-        <div className="hidden md:block h-4 w-[1px] bg-[#1E293B]" />
-
-        <div className="flex items-center gap-2">
-          <RiShieldFlashLine className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-          <span className="hidden xl:inline text-xs font-medium text-slate-300">Defense State:</span>
-          <Badge variant="success" dot className="py-0.5 px-2 text-[10px]">ACTIVE DECOYS (2)</Badge>
-        </div>
-      </div>
-
-      {/* Center Search bar */}
-      <div className="hidden xl:flex items-center gap-2 bg-[#0B0E17] border border-[#1E293B] px-3 py-1 rounded text-xs text-slate-400 w-56">
-        <RiSearchLine className="w-3.5 h-3.5 text-slate-500" />
-        <span className="flex-1 text-slate-500 truncate">Search telemetry, IPs...</span>
-        <kbd className="text-[9px] font-mono bg-[#1E293B] text-slate-400 px-1 py-0.2 rounded border border-slate-700">⌘K</kbd>
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-[#0B0E17] px-2.5 py-1 rounded border border-[#1E293B]">
-          <RiCpuLine className="w-3.5 h-3.5 text-indigo-400" />
-          <span className="text-slate-400">LLM:</span>
-          <span className="text-slate-200 font-semibold">{ollamaStatus.model}</span>
+        {/* LLM Model Indicator */}
+        <div className="hidden xl:flex items-center gap-1.5 text-xs font-mono text-slate-600 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200">
+          <RiCpuLine className="w-4 h-4 text-indigo-600" />
+          <span className="text-slate-400 font-sans">LLM:</span>
+          <span className="font-semibold text-slate-900">{ollamaStatus.model}</span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-[#0B0E17] px-2.5 py-1 rounded border border-[#1E293B]">
-          <RiPulseLine className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-          <span className="hidden sm:inline text-slate-400">Threat:</span>
-          <span className="text-amber-400 font-semibold">Elevated</span>
+        {/* Cluster Selector */}
+        <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200">
+          <RiGlobalLine className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+          <select
+            value={environment}
+            onChange={(e) => setEnvironment(e.target.value)}
+            className="bg-transparent text-slate-800 text-xs focus:outline-none cursor-pointer font-medium"
+          >
+            <option value="Local Air-Gapped Cluster">Cluster: Air-Gapped Local</option>
+            <option value="Staging VPC Decoys">Cluster: Staging VPC</option>
+            <option value="Production Decoy Fleet">Cluster: Production Fleet</option>
+          </select>
+        </div>
+
+        {/* Primary Deploy Button */}
+        <a href="/honeypots">
+          <Button size="sm" variant="primary" className="rounded-xl shadow-xs text-xs font-semibold">
+            <RiAddLine className="w-4 h-4" />
+            <span className="hidden sm:inline">DEPLOY DECOY</span>
+          </Button>
+        </a>
+
+        {/* Notification Bell */}
+        <div className="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors">
+          <RiBellLine className="w-5 h-5" />
+          <span className="w-2 h-2 rounded-full bg-indigo-600 absolute top-2 right-2 border-2 border-white" />
+        </div>
+
+        <div className="h-6 w-[1px] bg-slate-200 hidden sm:block" />
+
+        {/* User Profile Badge */}
+        <div className="flex items-center gap-2.5 pl-1">
+          <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs border border-indigo-400/40">
+            <RiUser3Line className="w-4 h-4" />
+          </div>
+          <div className="hidden lg:block text-left">
+            <h4 className="text-xs font-bold text-slate-900 leading-tight">mvairamuthu2003</h4>
+            <span className="text-[10px] text-slate-400 font-mono tracking-wider block font-semibold uppercase">ADMIN</span>
+          </div>
         </div>
       </div>
     </header>
   );
 };
+
 
 

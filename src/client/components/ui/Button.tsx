@@ -14,14 +14,14 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyle = 'inline-flex items-center justify-center font-medium transition-all duration-150 rounded-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] cursor-pointer';
+  const baseStyle = 'inline-flex items-center justify-center font-medium transition-all duration-150 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] cursor-pointer';
 
   const variants = {
-    primary: 'bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500/50 shadow-sm',
-    secondary: 'bg-[#1E293B] hover:bg-[#28354D] text-slate-200 border border-[#334155]',
-    danger: 'bg-red-600 hover:bg-red-500 text-white border border-red-500/50 shadow-sm',
-    ghost: 'bg-transparent hover:bg-[#1E293B] text-slate-300 hover:text-slate-100',
-    outline: 'bg-transparent hover:bg-[#1E293B]/60 text-slate-200 border border-[#334155]',
+    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs border border-indigo-600/50',
+    secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200',
+    danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs',
+    ghost: 'bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900',
+    outline: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-xs',
   };
 
   const sizes = {
@@ -40,4 +40,5 @@ export const Button: React.FC<ButtonProps> = ({
     </button>
   );
 };
+
 

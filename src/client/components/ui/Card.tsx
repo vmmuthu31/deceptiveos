@@ -5,7 +5,7 @@ export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ children,
   return (
     <div
       className={cn(
-        'ox-card p-5 transition-all',
+        'ox-card p-5 transition-all bg-white border border-slate-200/80 rounded-2xl shadow-xs',
         className
       )}
       {...props}
@@ -20,10 +20,11 @@ export const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ chi
 };
 
 export const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({ children, className, ...props }) => {
-  return <h3 className={cn('text-base font-semibold text-slate-100 flex items-center gap-2 tracking-tight', className)} {...props}>{children}</h3>;
+  return <h3 className={cn('text-base font-semibold text-slate-900 flex items-center gap-2 tracking-tight', className)} {...props}>{children}</h3>;
 };
 
 export const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = ({ children, className, ...props }) => {
-  return <p className={cn('text-xs text-slate-400 font-normal leading-relaxed', className)} {...props}>{children}</p>;
+  return <p className={cn('text-xs text-slate-500 font-normal leading-relaxed', className)} {...props}>{children}</p>;
 };
+
 

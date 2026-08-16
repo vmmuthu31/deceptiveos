@@ -70,9 +70,9 @@ export const TerminalReplay: React.FC<TerminalReplayProps> = ({ initialEvent }) 
   };
 
   return (
-    <div className="rounded-lg border border-[#1E293B] bg-[#0B0E17] overflow-hidden flex flex-col h-[480px] font-sans">
+    <div className="rounded-2xl border border-slate-200 bg-slate-900 overflow-hidden flex flex-col h-[480px] font-sans shadow-md">
       {/* Terminal Top Window Header */}
-      <div className="bg-[#0F1626] px-4 py-2 border-b border-[#1E293B] flex items-center justify-between">
+      <div className="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2 font-mono text-xs text-slate-300">
           <RiTerminalBoxLine className="w-4 h-4 text-indigo-400" />
           <span className="font-semibold text-slate-200">Interactive Decoy Terminal Shell</span>
@@ -82,7 +82,7 @@ export const TerminalReplay: React.FC<TerminalReplayProps> = ({ initialEvent }) 
             <button
               onClick={handleCopyLogs}
               title="Copy Terminal Output"
-              className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-[#1E293B] text-xs transition-colors flex items-center gap-1 font-mono"
+              className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 text-xs transition-colors flex items-center gap-1 font-mono cursor-pointer"
             >
               <RiFileCopyLine className="w-3.5 h-3.5" />
               <span>{copied ? 'Copied!' : 'Copy'}</span>
@@ -90,13 +90,13 @@ export const TerminalReplay: React.FC<TerminalReplayProps> = ({ initialEvent }) 
             <button
               onClick={handleClearTerminal}
               title="Clear Terminal Log"
-              className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-[#1E293B] text-xs transition-colors flex items-center gap-1 font-mono"
+              className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 text-xs transition-colors flex items-center gap-1 font-mono cursor-pointer"
             >
               <RiDeleteBinLine className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="h-3 w-[1px] bg-[#1E293B]" />
-          <div className="flex items-center gap-1">
+          <div className="h-3 w-[1px] bg-slate-800" />
+          <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
@@ -105,19 +105,19 @@ export const TerminalReplay: React.FC<TerminalReplayProps> = ({ initialEvent }) 
       </div>
 
       {/* Terminal Screen Body */}
-      <div className="flex-1 p-4 font-mono text-xs overflow-y-auto space-y-3 bg-[#0B0E17]">
+      <div className="flex-1 p-4 font-mono text-xs overflow-y-auto space-y-3 bg-slate-900">
         {history.map((item, idx) => (
           <div key={idx} className="space-y-1">
             <div className="flex items-center gap-2 text-indigo-400">
               <span className="text-emerald-400">root@cipher-decoy:~#</span>
               <span className="text-slate-100 font-semibold">{item.command}</span>
               {item.delayMs && (
-                <span className="text-[10px] text-slate-400 bg-[#1E293B] px-1.5 py-0.2 rounded border border-slate-700 ml-auto">
+                <span className="text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.2 rounded border border-slate-700 ml-auto">
                   +{item.delayMs}ms jitter
                 </span>
               )}
             </div>
-            <pre className="text-slate-300 whitespace-pre-wrap font-mono text-[11px] leading-relaxed pl-3 border-l border-[#1E293B]">
+            <pre className="text-slate-300 whitespace-pre-wrap font-mono text-[11px] leading-relaxed pl-3 border-l border-slate-800">
               {item.output}
             </pre>
           </div>
@@ -131,25 +131,26 @@ export const TerminalReplay: React.FC<TerminalReplayProps> = ({ initialEvent }) 
       </div>
 
       {/* Terminal Command Input Bar */}
-      <form onSubmit={handleRunCommand} className="bg-[#0F1626] p-2 border-t border-[#1E293B] flex items-center gap-2">
+      <form onSubmit={handleRunCommand} className="bg-slate-950 p-2.5 border-t border-slate-800 flex items-center gap-2">
         <span className="font-mono text-xs text-emerald-400 pl-2 select-none">root@cipher-decoy:~#</span>
         <input
           type="text"
           value={inputCommand}
           onChange={(e) => setInputCommand(e.target.value)}
           placeholder="Type an SSH command (e.g. ls -la, cat /etc/passwd, uname -a)..."
-          className="flex-1 bg-transparent font-mono text-xs text-slate-100 focus:outline-none placeholder:text-slate-600"
+          className="flex-1 bg-transparent font-mono text-xs text-slate-100 focus:outline-none placeholder:text-slate-500"
         />
         <button
           type="submit"
           disabled={loading}
-          className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+          className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs flex items-center gap-1.5 cursor-pointer transition-colors font-semibold"
         >
-          <RiSendPlaneLine className="w-3 h-3" />
+          <RiSendPlaneLine className="w-3.5 h-3.5" />
           <span>Execute</span>
         </button>
       </form>
     </div>
   );
 };
+
 

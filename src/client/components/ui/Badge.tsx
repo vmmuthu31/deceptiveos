@@ -8,35 +8,35 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 
 export const Badge: React.FC<BadgeProps> = ({ children, className, variant = 'default', dot = false, ...props }) => {
   const variants = {
-    default: 'bg-[#1E293B] text-slate-300 border-[#334155]',
-    success: 'bg-[#064E3B]/60 text-[#34D399] border-[#059669]/40',
-    warning: 'bg-[#78350F]/60 text-[#FBBF24] border-[#D97706]/40',
-    danger: 'bg-[#7F1D1D]/60 text-[#F87171] border-[#DC2626]/40',
-    critical: 'bg-[#991B1B]/80 text-[#FECACA] border-[#EF4444] font-bold uppercase tracking-wider',
-    high: 'bg-[#7C2D12]/70 text-[#FDBA74] border-[#EA580C]/50 font-semibold',
-    medium: 'bg-[#713F12]/70 text-[#FDE047] border-[#CA8A04]/50',
-    low: 'bg-[#1E3A8A]/70 text-[#93C5FD] border-[#2563EB]/40',
-    info: 'bg-[#1E3A8A]/50 text-[#60A5FA] border-[#3B82F6]/30',
-    outline: 'bg-transparent text-slate-300 border-[#334155]',
+    default: 'bg-slate-100 text-slate-700 border-slate-200',
+    success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    warning: 'bg-amber-50 text-amber-700 border-amber-200',
+    danger: 'bg-rose-50 text-rose-700 border-rose-200',
+    critical: 'bg-red-100 text-red-800 border-red-200 font-bold uppercase tracking-wider',
+    high: 'bg-orange-50 text-orange-700 border-orange-200 font-semibold',
+    medium: 'bg-yellow-50 text-yellow-800 border-yellow-200',
+    low: 'bg-blue-50 text-blue-700 border-blue-200',
+    info: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    outline: 'bg-transparent text-slate-600 border-slate-200',
   };
 
   const dots = {
     default: 'bg-slate-400',
-    success: 'bg-[#10B981]',
-    warning: 'bg-[#F59E0B]',
-    danger: 'bg-[#EF4444]',
-    critical: 'bg-[#EF4444] animate-pulse',
-    high: 'bg-[#F97316]',
-    medium: 'bg-[#EAB308]',
-    low: 'bg-[#3B82F6]',
-    info: 'bg-[#3B82F6]',
+    success: 'bg-emerald-500',
+    warning: 'bg-amber-500',
+    danger: 'bg-rose-500',
+    critical: 'bg-red-500 animate-pulse',
+    high: 'bg-orange-500',
+    medium: 'bg-yellow-500',
+    low: 'bg-blue-500',
+    info: 'bg-indigo-500',
     outline: 'bg-slate-400',
   };
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium border transition-colors font-mono',
+        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border transition-colors font-sans',
         variants[variant],
         className
       )}
@@ -47,4 +47,5 @@ export const Badge: React.FC<BadgeProps> = ({ children, className, variant = 'de
     </span>
   );
 };
+
 
