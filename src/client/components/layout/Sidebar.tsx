@@ -94,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onToggleCollapse}
             title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-            className="hidden lg:flex absolute -right-3.5 top-[18px] z-50 w-7 h-7 rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-700 hover:scale-110 items-center justify-center cursor-pointer transition-all duration-200 border border-blue-400/40"
+            className="hidden lg:flex absolute right-0 translate-x-1/2 top-4.5 z-[60] w-7 h-7 rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-700 hover:scale-110 items-center justify-center cursor-pointer transition-all duration-200 border border-white/20"
           >
             {collapsed ? <RiArrowRightSLine className="w-4 h-4 text-white" /> : <RiArrowLeftSLine className="w-4 h-4 text-white" />}
           </button>
