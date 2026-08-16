@@ -54,11 +54,11 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
       {/* Main Content Area */}
       <main
         className={cn(
-          'pt-20 min-h-screen transition-[padding] duration-200 ease-in-out p-4 sm:p-6 lg:p-8',
-          collapsed ? 'lg:pl-24' : 'lg:pl-72'
+          'pt-20 min-h-screen transition-[padding] duration-200 ease-in-out p-4 sm:p-6 lg:py-6 lg:pr-8',
+          collapsed ? 'lg:pl-24' : 'lg:pl-70'
         )}
       >
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="w-full space-y-6">
           {children}
         </div>
       </main>
