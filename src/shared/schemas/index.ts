@@ -10,7 +10,7 @@ export const CreateHoneypotSchema = z.object({
 
 export const GenerateLureSchema = z.object({
   title: z.string().min(3).max(100),
-  docType: z.enum(['PDF', 'DOCX', 'XLSX', 'JSON', 'ENV']),
+  docType: z.enum(['PDF', 'DOCX', 'XLSX', 'JSON', 'ENV', 'STRK20']),
   targetCompany: z.string().min(2).max(100),
   industry: z.string().min(2).max(100),
   customContext: z.string().optional(),

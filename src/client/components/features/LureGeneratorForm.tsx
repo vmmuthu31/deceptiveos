@@ -12,7 +12,7 @@ interface LureGeneratorFormProps {
 
 export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGenerated }) => {
   const [title, setTitle] = useState('Q3_Executive_Compensation_2026.xlsx');
-  const [docType, setDocType] = useState<'PDF' | 'DOCX' | 'XLSX' | 'JSON' | 'ENV'>('XLSX');
+  const [docType, setDocType] = useState<'PDF' | 'DOCX' | 'XLSX' | 'JSON' | 'ENV' | 'STRK20'>('XLSX');
   const [targetCompany, setTargetCompany] = useState('Acme Cyber Systems');
   const [industry, setIndustry] = useState('Financial Services & Defense');
   const [loading, setLoading] = useState(false);
@@ -49,7 +49,7 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
           <CardTitle className="font-bold text-slate-900">Semantic Lure Synthesizer</CardTitle>
         </div>
         <CardDescription>
-          Uses local Ollama LLM to generate realistic company-specific lure documents embedded with steganographic tracking watermarks.
+          Uses OpenCode AI to generate realistic company-specific lure documents embedded with steganographic tracking watermarks.
         </CardDescription>
       </CardHeader>
 
@@ -70,10 +70,11 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
             <label className="block text-xs font-semibold text-slate-700 mb-1">Document Format</label>
             <select
               value={docType}
-              onChange={(e) => setDocType(e.target.value as 'PDF' | 'DOCX' | 'XLSX' | 'JSON' | 'ENV')}
+              onChange={(e) => setDocType(e.target.value as 'PDF' | 'DOCX' | 'XLSX' | 'JSON' | 'ENV' | 'STRK20')}
               className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all cursor-pointer font-medium"
             >
               <option value="XLSX">Spreadsheet (.xlsx)</option>
+              <option value="STRK20">Starknet STRK20 Shielded Canary (.json)</option>
               <option value="JSON">API Credentials (.json)</option>
               <option value="ENV">Environment Secrets (.env)</option>
               <option value="PDF">Executive PDF (.pdf)</option>
