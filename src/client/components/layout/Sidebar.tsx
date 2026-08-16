@@ -84,11 +84,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <aside
         className={cn(
-          'fixed left-0 top-0 h-screen bg-white border-r border-slate-200/80 flex flex-col z-50 font-sans transition-all duration-200 ease-in-out shadow-xs',
+          'fixed left-0 top-0 h-screen bg-white border-r border-slate-200/80 flex flex-col z-50 font-sans transition-all duration-200 ease-in-out shadow-xs relative',
           collapsed ? 'w-16' : 'w-64',
           mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         )}
       >
+        {/* Floating Desktop Collapse Toggle (EAK Digital Style) */}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            className="hidden lg:flex absolute -right-3.5 top-5 z-50 w-7 h-7 rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-700 hover:scale-110 items-center justify-center cursor-pointer transition-all duration-200 border border-blue-400/40"
+          >
+            {collapsed ? <RiArrowRightSLine className="w-4 h-4 text-white" /> : <RiArrowLeftSLine className="w-4 h-4 text-white" />}
+          </button>
+        )}
+
         {/* Sidebar Header */}
         <div className="p-4 border-b border-slate-200/80 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3 overflow-hidden">
@@ -119,17 +130,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="lg:hidden p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 cursor-pointer"
             >
               <RiCloseLine className="w-5 h-5" />
-            </button>
-          )}
-
-          {/* Desktop Collapse Toggle */}
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-              className="hidden lg:flex p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 cursor-pointer transition-colors"
-            >
-              {collapsed ? <RiArrowRightSLine className="w-4 h-4" /> : <RiArrowLeftSLine className="w-4 h-4" />}
             </button>
           )}
         </div>
