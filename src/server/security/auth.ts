@@ -153,3 +153,44 @@ export function getAdminUserEmails(): string[] {
   return adminEmails.length > 0 ? adminEmails : ['mvairamuthu2003@ciphernest.ai'];
 }
 
+// Reset Token Store (token -> { email, expiresAt })
+const resetTokenStore: Map<string, { email: string; expiresAt: number }> = new Map();
+
+export async function createPasswordResetToken(email: string): Promise<string> {
+  const normalized = email.toLowerCase();
+  const user = userStore.get(normalized);
+  if (!user) {
+    throw new Error('No user account found with that email address.');
+  }
+
+  const token = `rst_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
+  const expiresAt = Date.now() + 1000 * 60 * 60; // 1 hour validity
+
+  resetTokenStore.set(token, { email: normalized, expiresAt });
+  return token;
+}
+
+export async function resetUserPassword(token: string, newPassword: string): Promise<boolean> {
+  const record = resetTokenStore.get(token);
+  if (!record) {
+    throw new Error('Invalid or expired password reset link.');
+  }
+
+  if (Date.now() > record.expiresAt) {
+    resetTokenStore.delete(token);
+    throw new Error('Password reset link has expired. Please request a new one.');
+  }
+
+  const user = userStore.get(record.email);
+  if (!user) {
+    throw new Error('User account not found.');
+  }
+
+  user.passwordHash = await hashPassword(newPassword);
+  userStore.set(record.email, user);
+  resetTokenStore.delete(token);
+
+  return true;
+}
+
+

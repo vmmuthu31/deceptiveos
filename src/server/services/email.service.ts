@@ -126,3 +126,43 @@ export async function sendBeaconCallbackEmail(beacon: BeaconEvent): Promise<bool
     return false;
   }
 }
+
+export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
+  const transporter = createTransporter();
+  const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+
+  try {
+    await transporter.sendMail({
+      from: SMTP_FROM,
+      to: email,
+      subject: '🔐 [CipherNest] Password Reset Request',
+      html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 28px; border-radius: 12px; color: #0f172a; max-width: 540px; margin: 0 auto; border: 1px solid #e2e8f0;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #2563eb; margin: 0; font-size: 20px; text-transform: uppercase;">CIPHER<span style="color: #0f172a;">NEST</span></h2>
+            <p style="font-size: 11px; color: #64748b; margin-top: 4px; font-family: monospace;">ADVERSARIAL AI DEFENSE ENGINE</p>
+          </div>
+          <h3 style="color: #0f172a; margin-top: 0; font-size: 16px;">Password Reset Request</h3>
+          <p style="font-size: 14px; color: #475569; line-height: 1.5;">
+            We received a request to reset your CipherNest account password. Click the button below to specify a new password. This link is valid for <strong>1 hour</strong>.
+          </p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${resetUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 13px; text-decoration: none; display: inline-block;">
+              Reset Password Now →
+            </a>
+          </div>
+          <div style="background-color: #ffffff; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: monospace; font-size: 11px; color: #64748b; word-break: break-all;">
+            Direct Link: ${resetUrl}
+          </div>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 24px; text-align: center;">
+            If you did not request a password reset, you can safely ignore this email.
+          </p>
+        </div>
+      `,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+

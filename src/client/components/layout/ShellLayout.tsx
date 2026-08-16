@@ -3,15 +3,21 @@
 import { Sidebar } from '@/client/components/layout/Sidebar';
 import { Topbar } from '@/client/components/layout/Topbar';
 import { cn } from '@/client/lib/utils';
+import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 interface ShellLayoutProps {
   children: React.ReactNode;
 }
 
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
+
 export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isAuthPage = AUTH_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
   // Close mobile drawer on route change or screen resize
   useEffect(() => {
@@ -24,8 +30,12 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  if (isAuthPage) {
+    return <div className="min-h-screen bg-[#F8FAFC] font-sans antialiased selection:bg-indigo-500 selection:text-white">{children}</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-[#0B0E17] text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-indigo-500 selection:text-white">
       {/* Sidebar Component */}
       <Sidebar
         collapsed={collapsed}
@@ -44,8 +54,8 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
       {/* Main Content Area */}
       <main
         className={cn(
-          'pt-14 min-h-screen transition-[padding] duration-200 ease-in-out p-4 sm:p-6 lg:p-8',
-          collapsed ? 'lg:pl-16' : 'lg:pl-64'
+          'pt-20 min-h-screen transition-[padding] duration-200 ease-in-out p-4 sm:p-6 lg:p-8',
+          collapsed ? 'lg:pl-20' : 'lg:pl-72'
         )}
       >
         <div className="max-w-7xl mx-auto space-y-6">
@@ -55,3 +65,4 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
     </div>
   );
 };
+
