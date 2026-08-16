@@ -28,6 +28,8 @@ export default function DashboardPage() {
   const [aiLatencyMs, setAiLatencyMs] = useState(140);
   const [syncing, setSyncing] = useState(false);
 
+  const [deceptionScore, setDeceptionScore] = useState<any>(null);
+
   async function loadDashboardData() {
     setSyncing(true);
     try {
@@ -64,6 +66,13 @@ export default function DashboardPage() {
       if (aiRes.ok) {
         const aiData = await aiRes.json() as { health?: { latencyMs?: number } };
         if (aiData.health?.latencyMs) setAiLatencyMs(aiData.health.latencyMs);
+      }
+
+      // 5. Fetch Deception Effectiveness Score
+      const scoreRes = await fetch('/api/analytics/score');
+      if (scoreRes.ok) {
+        const scoreData = await scoreRes.json();
+        setDeceptionScore(scoreData.score);
       }
     } catch {
       // Error handling
@@ -219,6 +228,53 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Deception Effectiveness Scoreboard & Comparative Benchmark */}
+      {deceptionScore && (
+        <Card className="p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <span className="text-[10px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded border border-indigo-200/60 uppercase">
+                AI Adversary Benchmark
+              </span>
+              <h3 className="text-lg font-bold text-slate-900 mt-1">Deception Effectiveness Scoreboard</h3>
+              <p className="text-xs text-slate-500">Live quantitative metrics comparing static honeypots vs CipherNest autonomous defense</p>
+            </div>
+            <div className="flex items-center gap-3 font-mono text-xs">
+              <div className="text-right">
+                <span className="text-[10px] text-slate-400 block">Attacker Trapped Rate</span>
+                <span className="font-bold text-emerald-600 text-sm">{deceptionScore.attackerTrappedRate}%</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-400 block">DNA Confidence</span>
+                <span className="font-bold text-indigo-600 text-sm">{deceptionScore.dnaConfidencePercentage}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Benchmark Comparison Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-sans border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-400 font-mono text-[11px]">
+                  <th className="py-2.5 px-3 font-semibold">Evaluation Metric</th>
+                  <th className="py-2.5 px-3 font-semibold">Static Honeypots (Traditional)</th>
+                  <th className="py-2.5 px-3 font-semibold text-indigo-600">CipherNest Autonomous Defense</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {deceptionScore.comparisonBenchmark?.map((item: any) => (
+                  <tr key={item.metric} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-2.5 px-3 font-semibold text-slate-900">{item.metric}</td>
+                    <td className="py-2.5 px-3 font-mono text-slate-500">{item.staticHoneypot}</td>
+                    <td className="py-2.5 px-3 font-mono font-bold text-indigo-600 bg-indigo-50/40">{item.ciphernest}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
       {/* 2-Column Section: Quick Actions & Fleet Health */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
