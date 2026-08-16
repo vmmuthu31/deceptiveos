@@ -79,21 +79,6 @@ DB_USER=vault_admin
 DB_PASS=${tokenStr}
 API_SECRET=sk_live_${tokenStr}
 # STATIVE_TOKEN=${watermark.metadataTag} ${watermark.stegoWhitespaceSignature}`;
-  } else if (data.docType === 'STRK20') {
-    watermarkedContent = JSON.stringify(
-      {
-        starknet_shielded_canary: {
-          network: 'starknet-mainnet',
-          protocol: 'STRK20 Privacy Pool',
-          contract: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
-          shielded_utxo_commitment: `0x${tokenStr}998877665544332211`,
-          stego_signature: watermark.stegoWhitespaceSignature,
-          canary_beacon: `http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr}`,
-        },
-      },
-      null,
-      2
-    );
   } else {
     watermarkedContent = `${rawContent}\n\n/* STEGO_WATERMARK:${watermark.stegoWhitespaceSignature} METADATA_TAG:${watermark.metadataTag} BEACON:http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr} */`;
   }

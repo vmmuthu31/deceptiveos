@@ -86,7 +86,7 @@ export interface WatermarkToken {
 export interface LureDocument {
   id: string;
   title: string;
-  docType: 'PDF' | 'DOCX' | 'XLSX' | 'JSON' | 'ENV' | 'STRK20';
+  docType: 'PDF' | 'DOCX' | 'XLSX' | 'JSON' | 'ENV';
   targetCompany: string;
   industry: string;
   watermark: WatermarkToken;
