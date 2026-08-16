@@ -1,24 +1,18 @@
 'use client';
 
 import { Badge } from '@/client/components/ui/Badge';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/Card';
+import { Card, CardHeader, CardTitle } from '@/client/components/ui/Card';
 import { AnonymizedThreatNode } from '@/shared/types';
 import React, { useEffect, useState } from 'react';
 import {
-  RiGitForkLine,
-  RiGlobalLine,
   RiNodeTree,
-  RiShieldCrossLine,
-  RiTerminalBoxLine,
-  RiTimeLine
+  RiTerminalBoxLine
 } from 'react-icons/ri';
 
 export default function ThreatNetworkPage() {
   const [nodes, setNodes] = useState<AnonymizedThreatNode[]>([]);
-  const [loading, setLoading] = useState(true);
 
   async function loadNetwork() {
-    setLoading(true);
     try {
       const res = await fetch('/api/network');
       if (res.ok) {
@@ -27,8 +21,6 @@ export default function ThreatNetworkPage() {
       }
     } catch {
       // error
-    } finally {
-      setLoading(false);
     }
   }
 

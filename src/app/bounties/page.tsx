@@ -9,16 +9,12 @@ import {
   RiAddLine,
   RiCheckDoubleLine,
   RiCoinsLine,
-  RiFingerprintLine,
-  RiInformationLine,
   RiLock2Line,
-  RiRefreshLine,
   RiShieldKeyholeLine
 } from 'react-icons/ri';
 
 export default function GhostBountiesPage() {
   const [bounties, setBounties] = useState<GhostBountyItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [fundingModal, setFundingModal] = useState(false);
   const [claimModal, setClaimModal] = useState<GhostBountyItem | null>(null);
 
@@ -30,7 +26,6 @@ export default function GhostBountiesPage() {
   const [intelReport, setIntelReport] = useState('');
 
   async function loadBounties() {
-    setLoading(true);
     try {
       const res = await fetch('/api/bounties');
       if (res.ok) {
@@ -39,8 +34,6 @@ export default function GhostBountiesPage() {
       }
     } catch {
       // error
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -134,7 +127,7 @@ export default function GhostBountiesPage() {
                   <span className="text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/60">
                     {bounty.dnaFingerprint}
                   </span>
-                  <Badge variant={bounty.shieldedStatus === 'CLAIMED' ? 'success' : 'indigo'}>
+                  <Badge variant={bounty.shieldedStatus === 'CLAIMED' ? 'success' : 'info'}>
                     <RiLock2Line className="w-3 h-3" />
                     <span>{bounty.shieldedStatus}</span>
                   </Badge>

@@ -1,17 +1,13 @@
 'use client';
 
-import { Badge } from '@/client/components/ui/Badge';
 import { Button } from '@/client/components/ui/Button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/Card';
-import { PrivateTreasuryState, TreasuryTx } from '@/shared/types';
+import { PrivateTreasuryState } from '@/shared/types';
 import React, { useEffect, useState } from 'react';
 import {
-  RiArrowRightLine,
-  RiCheckDoubleLine,
   RiCoinsLine,
   RiExchangeLine,
   RiLock2Line,
-  RiRefreshLine,
   RiSafe2Line,
   RiShieldCheckLine,
   RiWallet3Line
@@ -19,13 +15,11 @@ import {
 
 export default function TreasuryPage() {
   const [treasury, setTreasury] = useState<PrivateTreasuryState | null>(null);
-  const [loading, setLoading] = useState(true);
   const [actionType, setActionType] = useState<'SHIELD' | 'UNSHIELD'>('SHIELD');
   const [amountStrk, setAmountStrk] = useState(500);
   const [executing, setExecuting] = useState(false);
 
   async function loadTreasury() {
-    setLoading(true);
     try {
       const res = await fetch('/api/treasury');
       if (res.ok) {
@@ -34,8 +28,6 @@ export default function TreasuryPage() {
       }
     } catch {
       // error
-    } finally {
-      setLoading(false);
     }
   }
 

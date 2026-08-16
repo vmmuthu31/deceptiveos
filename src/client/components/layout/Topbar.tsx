@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/client/components/ui/Button';
-import { cn } from '@/client/lib/utils';
 import React, { useEffect, useState } from 'react';
 import { RiAddLine, RiBellLine, RiCpuLine, RiGlobalLine, RiMenuLine, RiSearchLine, RiUser3Line } from 'react-icons/ri';
 
@@ -12,7 +11,6 @@ interface TopbarProps {
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
-  collapsed = false,
   onOpenMobile,
 }) => {
   const [ollamaStatus, setOllamaStatus] = useState<{ available: boolean; model: string }>({
@@ -80,7 +78,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono text-slate-600 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200 whitespace-nowrap">
           <RiCpuLine className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
           <span className="text-slate-400 font-sans">LLM:</span>
-          <span className="font-semibold text-slate-900">MiMo v2.5 Free</span>
+          <span className="font-semibold text-slate-900">{ollamaStatus.model.includes('mimo') ? 'MiMo v2.5 Free' : ollamaStatus.model}</span>
         </div>
 
         {/* Cluster Selector */}
