@@ -33,24 +33,22 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
         onLureGenerated(data.lure, data.content);
       }
     } catch {
-      // error handling
+      // fallback
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card className="border border-slate-800/80">
+    <Card className="font-sans">
       <CardHeader>
-        <div>
-          <div className="flex items-center gap-2">
-            <RiFileShield2Line className="w-5 h-5 text-emerald-400" />
-            <CardTitle>Semantic Lure Document Generator</CardTitle>
-          </div>
-          <CardDescription>
-            Uses local Ollama LLM to generate realistic company-specific lure documents embedded with steganographic tracking watermarks.
-          </CardDescription>
+        <div className="flex items-center gap-2">
+          <RiFileShield2Line className="w-5 h-5 text-indigo-400" />
+          <CardTitle>Semantic Lure Synthesizer</CardTitle>
         </div>
+        <CardDescription>
+          Uses local Ollama LLM to generate realistic company-specific lure documents embedded with steganographic tracking watermarks.
+        </CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -60,24 +58,24 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-950/80 border border-slate-800 rounded-lg text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500"
+            className="w-full px-3 py-2 bg-[#0B0E17] border border-[#1E293B] rounded text-xs font-mono text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Document Type</label>
+            <label className="block text-xs font-medium text-slate-300 mb-1">Document Format</label>
             <select
               value={docType}
               onChange={(e) => setDocType(e.target.value as 'PDF' | 'DOCX' | 'XLSX' | 'JSON' | 'ENV')}
-              className="w-full px-3 py-2 bg-slate-950/80 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full px-3 py-2 bg-[#0B0E17] border border-[#1E293B] rounded text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
             >
-              <option value="XLSX">Spreadsheet (XLSX)</option>
-              <option value="JSON">API Config (JSON)</option>
-              <option value="ENV">Environment File (ENV)</option>
-              <option value="PDF">PDF Contract</option>
-              <option value="DOCX">DOCX Memo</option>
+              <option value="XLSX">Spreadsheet (.xlsx)</option>
+              <option value="JSON">API Credentials (.json)</option>
+              <option value="ENV">Environment Secrets (.env)</option>
+              <option value="PDF">Executive PDF (.pdf)</option>
+              <option value="DOCX">Internal Memo (.docx)</option>
             </select>
           </div>
 
@@ -87,7 +85,7 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
               type="text"
               value={targetCompany}
               onChange={(e) => setTargetCompany(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-950/80 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full px-3 py-2 bg-[#0B0E17] border border-[#1E293B] rounded text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
               required
             />
           </div>
@@ -99,17 +97,17 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
             type="text"
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-950/80 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+            className="w-full px-3 py-2 bg-[#0B0E17] border border-[#1E293B] rounded text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
             required
           />
         </div>
 
         <div className="pt-2 flex items-center justify-between">
-          <span className="text-xs font-mono text-slate-500 flex items-center gap-1">
-            <RiCpuLine className="w-3.5 h-3.5 text-cyan-400" /> Steganographic Watermark: Auto-Embedded
+          <span className="text-[11px] font-mono text-slate-500 flex items-center gap-1">
+            <RiCpuLine className="w-3.5 h-3.5 text-indigo-400" /> Steganographic Canary Token: Embedded
           </span>
-          <Button type="submit" disabled={loading}>
-            <RiMagicLine className="w-4 h-4" />
+          <Button type="submit" disabled={loading} variant="primary">
+            <RiMagicLine className="w-3.5 h-3.5" />
             <span>{loading ? 'Synthesizing Document...' : 'Generate Lure & Watermark'}</span>
           </Button>
         </div>
@@ -117,3 +115,4 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
     </Card>
   );
 };
+

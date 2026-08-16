@@ -1,6 +1,5 @@
 import '@/app/globals.css';
-import { Sidebar } from '@/client/components/layout/Sidebar';
-import { Topbar } from '@/client/components/layout/Topbar';
+import { ShellLayout } from '@/client/components/layout/ShellLayout';
 import type { Metadata } from 'next';
 import React from 'react';
 
@@ -12,13 +11,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-[#060913] text-slate-100 antialiased min-h-screen">
-        <Sidebar />
-        <Topbar />
-        <main className="pl-64 pt-16 min-h-screen p-6">
-          {children}
-        </main>
+      <body className="bg-[#0B0E17] text-slate-100 antialiased min-h-screen">
+        <ShellLayout>{children}</ShellLayout>
       </body>
     </html>
   );
 }
+

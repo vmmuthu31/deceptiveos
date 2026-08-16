@@ -79,39 +79,39 @@ export default function HoneypotsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 font-sans">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <RiShieldCrossLine className="w-6 h-6 text-emerald-400" />
-            Honeypot Decoy Management
+          <h1 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <RiShieldCrossLine className="w-5 h-5 text-indigo-400" />
+            Decoy Node Fleet Management
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Deploy local containers and maintain self-updating Digital Twin decoys matching real environment metadata.
+          <p className="text-xs text-slate-400 mt-0.5">
+            Deploy local decoy containers and maintain self-updating Digital Twin nodes matching production metadata.
           </p>
         </div>
-        <Button onClick={() => setCreating(!creating)}>
-          <RiAddLine className="w-4 h-4" />
-          <span>{creating ? 'Cancel' : 'Deploy New Decoy'}</span>
+        <Button onClick={() => setCreating(!creating)} variant="primary">
+          <RiAddLine className="w-3.5 h-3.5" />
+          <span>{creating ? 'Close Form' : 'Deploy New Decoy'}</span>
         </Button>
       </div>
 
-      {/* New Honeypot Form Drawer */}
+      {/* Deployment Form */}
       {creating && (
-        <Card className="border border-emerald-800/60 glow-emerald">
+        <Card className="border-indigo-500/50">
           <CardHeader>
-            <CardTitle>Deploy New Cyber Decoy Container</CardTitle>
+            <CardTitle>Deploy Decoy Cyber Container</CardTitle>
             <CardDescription>Configure local honeypot container type, port binding, and temporal jitter.</CardDescription>
           </CardHeader>
-          <form onSubmit={handleCreateHoneypot} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <form onSubmit={handleCreateHoneypot} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
             <div>
               <label className="block text-xs text-slate-300 mb-1">Decoy Name</label>
               <input
                 type="text"
                 value={newHpName}
                 onChange={(e) => setNewHpName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono"
+                className="w-full px-3 py-1.5 bg-[#0B0E17] border border-[#1E293B] rounded text-xs font-mono text-slate-100 focus:outline-none focus:border-indigo-500"
                 required
               />
             </div>
@@ -120,7 +120,7 @@ export default function HoneypotsPage() {
               <select
                 value={newHpType}
                 onChange={(e) => setNewHpType(e.target.value as 'Cowrie' | 'Dionaea' | 'CustomLLM')}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs"
+                className="w-full px-3 py-1.5 bg-[#0B0E17] border border-[#1E293B] rounded text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
               >
                 <option value="CustomLLM">CustomLLM (AI Counter-LLM SSH)</option>
                 <option value="Cowrie">Cowrie (SSH/Telnet Trap)</option>
@@ -133,7 +133,7 @@ export default function HoneypotsPage() {
                 type="number"
                 value={newHpPort}
                 onChange={(e) => setNewHpPort(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono"
+                className="w-full px-3 py-1.5 bg-[#0B0E17] border border-[#1E293B] rounded text-xs font-mono text-slate-100 focus:outline-none focus:border-indigo-500"
                 required
               />
             </div>
@@ -142,22 +142,22 @@ export default function HoneypotsPage() {
         </Card>
       )}
 
-      {/* Honeypots Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* Honeypots Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {honeypots.map((hp) => (
           <HoneypotCard key={hp.id} honeypot={hp} onToggleStatus={handleToggleStatus} />
         ))}
       </div>
 
-      {/* Digital Twin Metadata Reader Section */}
-      <Card className="border border-slate-800">
+      {/* Digital Twin Metadata Scanner */}
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
-              <RiRefreshLine className="w-5 h-5 text-cyan-400" />
+              <RiRefreshLine className="w-4 h-4 text-indigo-400" />
               <CardTitle>Living Digital Twin Metadata Scanner</CardTitle>
             </div>
-            <Badge variant="success">Read-Only Safe Sync</Badge>
+            <Badge variant="success" dot>READ-ONLY SAFE SYNC</Badge>
           </div>
           <CardDescription>
             Scans local host directory structures and version strings to ensure honeypot profiles automatically match production conventions.
@@ -165,27 +165,27 @@ export default function HoneypotsPage() {
         </CardHeader>
 
         {twinMetadata && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs p-4 rounded-lg bg-slate-950/80 border border-slate-900">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs p-3.5 rounded bg-[#0B0E17] border border-[#1E293B]">
             <div>
-              <span className="text-slate-500 block">Host OS Architecture</span>
+              <span className="text-slate-500 text-[10px] uppercase block font-sans">Host Architecture</span>
               <span className="text-slate-200 font-semibold">{twinMetadata.osRelease} ({twinMetadata.architecture})</span>
             </div>
             <div>
-              <span className="text-slate-500 block">Active Ports Scanned</span>
-              <span className="text-cyan-400 font-semibold">{twinMetadata.activePortRange}</span>
+              <span className="text-slate-500 text-[10px] uppercase block font-sans">Active Ports Scanned</span>
+              <span className="text-indigo-300 font-semibold">{twinMetadata.activePortRange}</span>
             </div>
             <div>
-              <span className="text-slate-500 block">Host Name Pattern</span>
+              <span className="text-slate-500 text-[10px] uppercase block font-sans">Host Name Pattern</span>
               <span className="text-emerald-400 font-semibold">{twinMetadata.hostname}</span>
             </div>
 
-            <div className="md:col-span-3 pt-2 border-t border-slate-900">
-              <span className="text-slate-500 block mb-1.5 flex items-center gap-1">
-                <RiCpuLine className="w-3.5 h-3.5 text-cyan-400" /> Environment Directories Mirrored in Decoy:
+            <div className="md:col-span-3 pt-2 border-t border-[#1E293B]">
+              <span className="text-slate-500 text-[10px] uppercase mb-1.5 flex items-center gap-1 font-sans">
+                <RiCpuLine className="w-3.5 h-3.5 text-indigo-400" /> Environment Directories Mirrored in Decoy:
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {twinMetadata.directoryNaming.map((dir) => (
-                  <span key={dir} className="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">
+                  <span key={dir} className="px-2 py-0.5 rounded bg-[#1E293B] text-slate-300 border border-slate-700 text-[11px]">
                     /{dir}/
                   </span>
                 ))}
@@ -197,3 +197,4 @@ export default function HoneypotsPage() {
     </div>
   );
 }
+

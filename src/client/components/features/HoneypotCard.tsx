@@ -16,42 +16,44 @@ export const HoneypotCard: React.FC<HoneypotCardProps> = ({ honeypot, onToggleSt
   const isRunning = honeypot.status === 'active';
 
   return (
-    <Card className="relative overflow-hidden group">
-      <CardHeader>
-        <div>
-          <div className="flex items-center gap-2">
-            <RiTerminalBoxLine className="w-5 h-5 text-emerald-400" />
-            <CardTitle>{honeypot.name}</CardTitle>
+    <Card className="flex flex-col justify-between h-full font-sans">
+      <div>
+        <CardHeader>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <RiTerminalBoxLine className="w-4 h-4 text-indigo-400" />
+              <CardTitle>{honeypot.name}</CardTitle>
+            </div>
+            <Badge variant={isRunning ? 'success' : 'danger'} dot>
+              {isRunning ? 'ACTIVE' : 'PAUSED'}
+            </Badge>
           </div>
           <CardDescription>
-            Port: <span className="font-mono text-slate-200">{honeypot.port}</span> | ID:{' '}
-            <span className="font-mono text-slate-400">{honeypot.containerId}</span>
+            Engine: <span className="font-mono text-slate-300 font-semibold">{honeypot.type}</span> | Port:{' '}
+            <span className="font-mono text-indigo-300 font-medium">:{honeypot.port}</span>
           </CardDescription>
-        </div>
-        <Badge variant={isRunning ? 'success' : 'danger'}>
-          {isRunning ? 'Running' : 'Stopped'}
-        </Badge>
-      </CardHeader>
+        </CardHeader>
 
-      <div className="grid grid-cols-3 gap-3 my-4 p-3 rounded-lg bg-slate-950/60 border border-slate-900 text-xs font-mono">
-        <div>
-          <span className="text-slate-500 block">Jitter Latency</span>
-          <span className="text-cyan-400 font-semibold">{honeypot.temporalJitterMs}ms</span>
-        </div>
-        <div>
-          <span className="text-slate-500 block">Active Sessions</span>
-          <span className="text-emerald-400 font-semibold">{honeypot.activeSessionsCount}</span>
-        </div>
-        <div>
-          <span className="text-slate-500 block">Total Events</span>
-          <span className="text-slate-200 font-semibold">{honeypot.totalEventsCount}</span>
+        <div className="grid grid-cols-3 gap-2 my-4 p-3 rounded bg-[#0B0E17] border border-[#1E293B] text-xs font-mono">
+          <div>
+            <span className="text-slate-500 text-[10px] uppercase block font-sans">Jitter Jitter</span>
+            <span className="text-slate-200 font-semibold">{honeypot.temporalJitterMs}ms</span>
+          </div>
+          <div>
+            <span className="text-slate-500 text-[10px] uppercase block font-sans">Sessions</span>
+            <span className="text-emerald-400 font-semibold">{honeypot.activeSessionsCount}</span>
+          </div>
+          <div>
+            <span className="text-slate-500 text-[10px] uppercase block font-sans">Telemetry</span>
+            <span className="text-slate-300 font-semibold">{honeypot.totalEventsCount} events</span>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+      <div className="flex items-center justify-between pt-3 border-t border-[#1E293B] mt-2">
+        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
           <RiRefreshLine className={`w-3.5 h-3.5 ${honeypot.twinSyncEnabled ? 'text-emerald-400' : 'text-slate-600'}`} />
-          <span>Twin Sync: {honeypot.twinSyncEnabled ? 'Enabled' : 'Disabled'}</span>
+          <span>Twin Sync: {honeypot.twinSyncEnabled ? 'ON' : 'OFF'}</span>
         </div>
 
         <Button
@@ -59,10 +61,11 @@ export const HoneypotCard: React.FC<HoneypotCardProps> = ({ honeypot, onToggleSt
           variant={isRunning ? 'danger' : 'primary'}
           onClick={() => onToggleStatus(honeypot.id)}
         >
-          {isRunning ? <RiStopFill className="w-4 h-4" /> : <RiPlayFill className="w-4 h-4" />}
-          <span>{isRunning ? 'Stop Decoy' : 'Start Decoy'}</span>
+          {isRunning ? <RiStopFill className="w-3.5 h-3.5" /> : <RiPlayFill className="w-3.5 h-3.5" />}
+          <span>{isRunning ? 'Pause Node' : 'Activate Node'}</span>
         </Button>
       </div>
     </Card>
   );
 };
+

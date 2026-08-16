@@ -69,7 +69,7 @@ export default function SettingsPage() {
         a.remove();
       }
     } catch {
-      // error handling
+      // fallback
     } finally {
       setExporting(false);
     }
@@ -94,110 +94,114 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       <div>
-        <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-          <RiSettings4Line className="w-6 h-6 text-emerald-400" />
-          Settings, Intelligence & Cryptographic Ledger
+        <h1 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+          <RiSettings4Line className="w-5 h-5 text-indigo-400" />
+          Settings, Intelligence & Cryptographic Audit Ledger
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Verify local AI inference model health, air-gap security settings, SHA-256 cryptographic audit chain integrity, and export STIX 2.1 / Sigma detection rules.
+        <p className="text-xs text-slate-400 mt-0.5">
+          Verify local AI inference model health, air-gap security settings, SHA-256 cryptographic audit chain integrity, and export STIX 2.1 / Sigma rules.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Local AI Status */}
-        <Card className="border border-slate-800">
-          <CardHeader>
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <RiCpuLine className="w-5 h-5 text-cyan-400" />
-                <CardTitle>Local Ollama AI Engine</CardTitle>
+        {/* Local AI Engine */}
+        <Card className="flex flex-col justify-between">
+          <div>
+            <CardHeader>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <RiCpuLine className="w-4 h-4 text-indigo-400" />
+                  <CardTitle>Local Ollama AI Engine</CardTitle>
+                </div>
+                <Badge variant={ollamaStatus.available ? 'success' : 'danger'} dot>
+                  {ollamaStatus.available ? 'ONLINE (AIR-GAPPED)' : 'OFFLINE'}
+                </Badge>
               </div>
-              <Badge variant={ollamaStatus.available ? 'success' : 'danger'}>
-                {ollamaStatus.available ? 'Online (Air-Gapped)' : 'Offline'}
-              </Badge>
-            </div>
-            <CardDescription>Zero cloud dependency. All honeypot responses and lure generation execute locally.</CardDescription>
-          </CardHeader>
+              <CardDescription>Zero cloud API dependency. Honeypot responses and lure generation execute locally.</CardDescription>
+            </CardHeader>
 
-          <div className="space-y-3 font-mono text-xs p-4 bg-slate-950/80 rounded-lg border border-slate-900">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Selected Model:</span>
-              <span className="text-slate-100 font-semibold">{ollamaStatus.model}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Inference Host:</span>
-              <span className="text-slate-300">http://localhost:11434</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Local Response Latency:</span>
-              <span className="text-cyan-400">{ollamaStatus.latencyMs}ms</span>
+            <div className="space-y-2.5 font-mono text-xs p-3.5 bg-[#0B0E17] rounded border border-[#1E293B] my-3">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 text-[10px] uppercase font-sans">Active Model:</span>
+                <span className="text-slate-100 font-semibold">{ollamaStatus.model}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 text-[10px] uppercase font-sans">Local Host Endpoint:</span>
+                <span className="text-indigo-300">http://localhost:11434</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 text-[10px] uppercase font-sans">Local Inference Latency:</span>
+                <span className="text-emerald-400 font-semibold">{ollamaStatus.latencyMs}ms</span>
+              </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
-            <span className="text-xs font-semibold text-slate-300 block font-sans">Enterprise SIEM Threat Intel Exports:</span>
-            <div className="flex items-center gap-3">
+          <div className="pt-3 border-t border-[#1E293B] space-y-2">
+            <span className="text-[11px] font-medium text-slate-400 block font-sans">Enterprise SIEM Threat Intel Exports:</span>
+            <div className="flex items-center gap-2">
               <Button size="sm" variant="secondary" onClick={handleDownloadStix}>
-                <RiCompass3Line className="w-4 h-4 text-cyan-400" />
-                <span>Export STIX 2.1 Bundle</span>
+                <RiCompass3Line className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Export STIX 2.1</span>
               </Button>
               <Button size="sm" variant="secondary" onClick={handleDownloadSigma}>
-                <RiDownloadLine className="w-4 h-4 text-emerald-400" />
+                <RiDownloadLine className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Export Sigma Rules</span>
               </Button>
             </div>
           </div>
         </Card>
 
-        {/* Air-gap / Compliance Status */}
-        <Card className="border border-slate-800">
-          <CardHeader>
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <RiShieldCheckLine className="w-5 h-5 text-emerald-400" />
-                <CardTitle>Cryptographic SHA-256 Audit Ledger</CardTitle>
+        {/* Cryptographic SHA-256 Audit Chain */}
+        <Card className="flex flex-col justify-between">
+          <div>
+            <CardHeader>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <RiShieldCheckLine className="w-4 h-4 text-emerald-400" />
+                  <CardTitle>Cryptographic SHA-256 Audit Ledger</CardTitle>
+                </div>
+                <Badge variant="success" dot>SOC 2 COMPLIANT</Badge>
               </div>
-              <Badge variant="success">SOC 2 Ready</Badge>
-            </div>
-            <CardDescription>Tamper-evident append-only ledger with cryptographic hash chaining.</CardDescription>
-          </CardHeader>
+              <CardDescription>Tamper-evident append-only ledger with cryptographic hash chaining.</CardDescription>
+            </CardHeader>
 
-          {compliance && (
-            <div className="space-y-3 font-mono text-xs p-4 bg-slate-950/80 rounded-lg border border-slate-900">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">SOC 2 Type II Score:</span>
-                <span className="text-emerald-400 font-semibold">{compliance.soc2Score}%</span>
+            {compliance && (
+              <div className="space-y-2.5 font-mono text-xs p-3.5 bg-[#0B0E17] rounded border border-[#1E293B] my-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 text-[10px] uppercase font-sans">SOC 2 Type II Compliance:</span>
+                  <span className="text-emerald-400 font-semibold">{compliance.soc2Score}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 text-[10px] uppercase font-sans">ISO 27001:2022 Controls:</span>
+                  <span className="text-emerald-400 font-semibold">{compliance.iso27001Score}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 text-[10px] uppercase font-sans">Audit Block Height:</span>
+                  <span className="text-slate-200">{compliance.immutableAuditLogHeight} blocks</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">ISO 27001:2022 Score:</span>
-                <span className="text-emerald-400 font-semibold">{compliance.iso27001Score}%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Immutable Ledger Height:</span>
-                <span className="text-slate-200">{compliance.immutableAuditLogHeight} blocks</span>
-              </div>
-            </div>
-          )}
+            )}
 
-          {hashVerification && (
-            <div className="mt-3 p-3 rounded-lg bg-emerald-950/40 border border-emerald-800/60 font-mono text-xs text-emerald-300">
-              <div className="flex items-center gap-2 font-bold mb-1">
-                <RiCheckDoubleLine className="w-4 h-4 text-emerald-400" />
-                <span>Ledger Integrity Verified — 0 Tamper Errors</span>
+            {hashVerification && (
+              <div className="p-2.5 rounded bg-[#064E3B]/40 border border-[#059669]/50 font-mono text-xs text-emerald-300">
+                <div className="flex items-center gap-1.5 font-bold mb-0.5">
+                  <RiCheckDoubleLine className="w-4 h-4 text-emerald-400" />
+                  <span>Ledger Verification Passed (0 Errors)</span>
+                </div>
+                <p className="text-[10px] text-slate-400 truncate">Root Hash: {hashVerification.rootHash}</p>
               </div>
-              <p className="text-[11px] text-slate-400 truncate">Root Hash: {hashVerification.rootHash}</p>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+          <div className="pt-3 border-t border-[#1E293B] flex items-center justify-between">
             <Button size="sm" variant="outline" onClick={handleVerifyHashChain} disabled={verifyingHash}>
-              <RiLock2Line className="w-4 h-4 text-cyan-400" />
-              <span>{verifyingHash ? 'Verifying...' : 'Verify Hash-Chain Integrity'}</span>
+              <RiLock2Line className="w-3.5 h-3.5 text-indigo-400" />
+              <span>{verifyingHash ? 'Verifying...' : 'Verify Hash-Chain'}</span>
             </Button>
-            <Button size="sm" onClick={handleExportEvidence} disabled={exporting}>
-              <RiDownloadLine className="w-4 h-4" />
+            <Button size="sm" variant="primary" onClick={handleExportEvidence} disabled={exporting}>
+              <RiDownloadLine className="w-3.5 h-3.5" />
               <span>{exporting ? 'Generating Report...' : 'SOC 2 Evidence Report'}</span>
             </Button>
           </div>
@@ -206,3 +210,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+
