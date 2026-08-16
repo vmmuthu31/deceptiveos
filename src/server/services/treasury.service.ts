@@ -1,5 +1,6 @@
 import { appendAuditBlock, readDb, writeDb } from '@/server/db/database';
 import { PrivateTreasuryState, TreasuryTx } from '@/shared/types';
+import crypto from 'crypto';
 
 export async function getPrivateTreasuryState(): Promise<PrivateTreasuryState> {
   const db = readDb();
@@ -7,31 +8,10 @@ export async function getPrivateTreasuryState(): Promise<PrivateTreasuryState> {
     db.treasury = {
       publicWalletAddress: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
       publicBalanceStrk: 10000,
-      shieldedBalanceStrk: 2450,
-      committedBountyStrk: 650,
-      availableShieldedStrk: 1800,
-      transactions: [
-        {
-          id: 'tx-01',
-          type: 'SHIELD',
-          amountStrk: 500,
-          txHash: '0x01a89c918239f10293a8e10293b471',
-          utxoCommitment: '0xutxo_commitment_998877665544',
-          status: 'CONFIRMED',
-          timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
-          memo: 'Shield public STRK into STRK20 Privacy Pool',
-        },
-        {
-          id: 'tx-02',
-          type: 'PRIVATE_TRANSFER',
-          amountStrk: 250,
-          txHash: '0x02b91d948192a01928471a09218471',
-          utxoCommitment: '0xutxo_commitment_112233445566',
-          status: 'CONFIRMED',
-          timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-          memo: 'Fund GhostBounty #gb-02 (Attacker DNA 8A:42:F1:9C)',
-        },
-      ],
+      shieldedBalanceStrk: 0,
+      committedBountyStrk: 0,
+      availableShieldedStrk: 0,
+      transactions: [],
     };
     writeDb(db);
   }
@@ -46,9 +26,9 @@ export async function executeTreasuryTransaction(data: {
   const db = readDb();
   if (!db.treasury) await getPrivateTreasuryState();
 
-  const treasury = db.treasury;
-  const txHash = `0x${Math.random().toString(16).substring(2, 34)}`;
-  const utxoCommitment = `0xutxo_${Math.random().toString(16).substring(2, 14)}`;
+  const treasury = db.treasury!;
+  const txHash = `0x${crypto.randomBytes(16).toString('hex')}`;
+  const utxoCommitment = `0xutxo_${crypto.randomBytes(8).toString('hex')}`;
 
   if (data.type === 'SHIELD') {
     treasury.publicBalanceStrk -= data.amountStrk;

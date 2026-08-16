@@ -20,6 +20,9 @@ interface DatabaseSchema {
   beacons: BeaconEvent[];
   lureContents: Record<string, string>;
   auditLedger: AuditBlock[];
+  ghostBounties?: import('@/shared/types').GhostBountyItem[];
+  treasury?: import('@/shared/types').PrivateTreasuryState;
+  threatNetwork?: import('@/shared/types').AnonymizedThreatNode[];
 }
 
 const DB_PATH = path.join(process.cwd(), 'data', 'ciphernest-store.json');

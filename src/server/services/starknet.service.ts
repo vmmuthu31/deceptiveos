@@ -11,16 +11,17 @@ export interface ShieldedUtxoCanary {
 
 export async function getStarknetDeceptionStatus() {
   const db = readDb();
-  const lureCount = db.lures.length;
-  const auditHeight = db.auditLedger.length;
+  const lureCount = db.lures ? db.lures.length : 0;
+  const bountyCount = db.ghostBounties ? db.ghostBounties.length : 0;
+  const auditHeight = db.auditLedger ? db.auditLedger.length : 0;
 
   return {
     network: 'Starknet Mainnet (STRK20 Shielded)',
     contractAddress: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
     shieldedPoolProtocol: 'STRK20 Zero-Knowledge Privacy Pool',
-    activeUtxoCanariesCount: lureCount * 2 + 3,
+    activeUtxoCanariesCount: lureCount + bountyCount,
     ledgerProofHeight: auditHeight,
-    lastProofSubmittedAt: new Date().toISOString(),
+    lastProofSubmittedAt: db.auditLedger[db.auditLedger.length - 1]?.timestamp || new Date().toISOString(),
     status: 'ACTIVE_SHIELDED',
   };
 }

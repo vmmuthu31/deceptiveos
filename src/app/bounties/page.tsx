@@ -114,8 +114,19 @@ export default function GhostBountiesPage() {
       </div>
 
       {/* Grid of Active GhostBounties */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {bounties.map((bounty) => (
+      {bounties.length === 0 ? (
+        <Card className="p-8 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center border border-indigo-100">
+            <RiShieldKeyholeLine className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-slate-900">No Active GhostBounties</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Click &quot;Fund GhostBounty&quot; above to fund your first private STRK20 threat intelligence bounty without exposing your organization wallet address.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {bounties.map((bounty) => (
           <Card key={bounty.id} className="hover:shadow-md transition-shadow relative flex flex-col justify-between">
             <div>
               <CardHeader className="pb-3">
@@ -168,6 +179,7 @@ export default function GhostBountiesPage() {
           </Card>
         ))}
       </div>
+      )}
 
       {/* Fund Bounty Modal */}
       {fundingModal && (
