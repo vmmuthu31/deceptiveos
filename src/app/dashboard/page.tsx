@@ -79,7 +79,7 @@ export default function DashboardPage() {
 
   // Compute real metrics from live arrays
   const aiScannersCount = events.filter((e) => e.payload?.toLowerCase().includes('nmap') || e.payload?.toLowerCase().includes('bot')).length;
-  const malwareDropsCount = events.filter((e) => e.kind === 'file_upload' || e.payload?.toLowerCase().includes('wget') || e.payload?.toLowerCase().includes('curl')).length;
+  const malwareDropsCount = events.filter((e) => e.kind === 'malware_drop' || e.payload?.toLowerCase().includes('wget') || e.payload?.toLowerCase().includes('curl')).length;
   const watermarkHitsCount = lures.reduce((acc, curr) => acc + (curr.downloadsCount || 0), 0);
   const totalTimeWastedMin = Math.round(events.length * 3.4); // Average session interaction time
 
