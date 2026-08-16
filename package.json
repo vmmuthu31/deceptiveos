@@ -3,8 +3,10 @@
   "version": "0.2.0",
   "description": "Adversarial AI Defense Engine — AI-Native Cyber Deception Platform",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
+    "electron": "electron .",
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit && eslint .",
@@ -35,6 +37,7 @@
     "@types/pg": "^8.21.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
+    "electron": "^43.4.0",
     "eslint": "^9.20.1",
     "eslint-config-next": "^15.1.0",
     "postcss": "^8.5.2",
