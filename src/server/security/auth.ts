@@ -142,3 +142,14 @@ export async function authenticateUserLogin(data: {
 
   return { user: profile, token };
 }
+
+export function getAdminUserEmails(): string[] {
+  const adminEmails: string[] = [];
+  for (const user of userStore.values()) {
+    if (user.role === 'admin' && user.email) {
+      adminEmails.push(user.email);
+    }
+  }
+  return adminEmails.length > 0 ? adminEmails : ['mvairamuthu2003@ciphernest.ai'];
+}
+

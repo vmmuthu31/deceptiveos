@@ -1,3 +1,4 @@
+import { getAdminUserEmails } from '@/server/security/auth';
 import { BeaconEvent, SessionEvent } from '@/shared/types';
 import nodemailer from 'nodemailer';
 
@@ -6,7 +7,6 @@ const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
 const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
 const SMTP_FROM = process.env.SMTP_FROM || 'CipherNest Security <alerts@ciphernest.ai>';
-const ALERT_EMAIL_RECIPIENT = process.env.ALERT_EMAIL_RECIPIENT || 'secops@company.com';
 
 function createTransporter() {
   return nodemailer.createTransport({
@@ -20,14 +20,24 @@ function createTransporter() {
   });
 }
 
+/**
+ * Returns list of dynamic recipient email addresses based on active Admin users
+ */
+export function getDynamicAlertRecipients(overrideEmail?: string): string[] {
+  if (overrideEmail && overrideEmail.trim().length > 0) {
+    return [overrideEmail.trim()];
+  }
+  return getAdminUserEmails();
+}
+
 export async function sendTestAlertEmail(toEmail?: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const recipient = toEmail || ALERT_EMAIL_RECIPIENT;
+  const recipients = getDynamicAlertRecipients(toEmail);
   const transporter = createTransporter();
 
   try {
     const info = await transporter.sendMail({
       from: SMTP_FROM,
-      to: recipient,
+      to: recipients.join(', '),
       subject: '🚨 [CipherNest] Security Alert Engine Test Notification',
       html: `
         <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 24px; border-radius: 12px; color: #0f172a;">
@@ -39,10 +49,10 @@ export async function sendTestAlertEmail(toEmail?: string): Promise<{ success: b
             <p><strong>Status:</strong> OPERATIONAL</p>
             <p><strong>SMTP Server:</strong> ${SMTP_HOST}:${SMTP_PORT}</p>
             <p><strong>Sender:</strong> ${SMTP_FROM}</p>
-            <p><strong>Recipient:</strong> ${recipient}</p>
+            <p><strong>Dynamic Admin Recipients:</strong> ${recipients.join(', ')}</p>
           </div>
           <p style="font-size: 11px; color: #94a3b8; margin-top: 20px;">
-            CipherNest Adversarial AI Defense Engine • Air-Gap Audit Log Verified
+            CipherNest Adversarial AI Defense Engine • Dynamic Admin Recipient Alert Engine
           </p>
         </div>
       `,
@@ -55,12 +65,13 @@ export async function sendTestAlertEmail(toEmail?: string): Promise<{ success: b
 }
 
 export async function sendHoneypotBreachEmail(event: SessionEvent): Promise<boolean> {
+  const recipients = getDynamicAlertRecipients();
   const transporter = createTransporter();
 
   try {
     await transporter.sendMail({
       from: SMTP_FROM,
-      to: ALERT_EMAIL_RECIPIENT,
+      to: recipients.join(', '),
       subject: `🚨 [CRITICAL ALERT] Honeypot Breach on ${event.honeypotName}`,
       html: `
         <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 24px; border-radius: 12px; color: #0f172a;">
@@ -74,6 +85,7 @@ export async function sendHoneypotBreachEmail(event: SessionEvent): Promise<bool
             <p><strong>Incident Type:</strong> ${event.kind.toUpperCase()}</p>
             <p><strong>Payload:</strong> ${event.payload}</p>
             <p><strong>Timestamp:</strong> ${new Date(event.timestamp).toLocaleString()}</p>
+            <p><strong>Dispatched To:</strong> ${recipients.join(', ')}</p>
           </div>
         </div>
       `,
@@ -85,12 +97,13 @@ export async function sendHoneypotBreachEmail(event: SessionEvent): Promise<bool
 }
 
 export async function sendBeaconCallbackEmail(beacon: BeaconEvent): Promise<boolean> {
+  const recipients = getDynamicAlertRecipients();
   const transporter = createTransporter();
 
   try {
     await transporter.sendMail({
       from: SMTP_FROM,
-      to: ALERT_EMAIL_RECIPIENT,
+      to: recipients.join(', '),
       subject: `⚠️ [CANARY ALERT] Watermark Beacon Triggered: ${beacon.documentTitle}`,
       html: `
         <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 24px; border-radius: 12px; color: #0f172a;">
@@ -103,6 +116,7 @@ export async function sendBeaconCallbackEmail(beacon: BeaconEvent): Promise<bool
             <p><strong>Watermark Token:</strong> ${beacon.watermarkToken}</p>
             <p><strong>Exfiltration IP:</strong> ${beacon.sourceIp} (${beacon.location})</p>
             <p><strong>User Agent:</strong> ${beacon.userAgent}</p>
+            <p><strong>Dispatched To:</strong> ${recipients.join(', ')}</p>
           </div>
         </div>
       `,

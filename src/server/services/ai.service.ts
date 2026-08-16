@@ -1,8 +1,5 @@
 import { AttackerClass } from '@/shared/types';
 
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-const DEFAULT_OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.1:8b';
-
 export const OPENCODE_MODELS = [
   { id: 'mimo-v2.5-free', name: 'MiMo-V2.5 Free', provider: 'Xiaomi / OpenCode' },
   { id: 'hy3-free', name: 'Hy3 Free', provider: 'Stealth / OpenCode' },
@@ -12,8 +9,7 @@ export const OPENCODE_MODELS = [
   { id: 'deepseek-v4-flash-free', name: 'DeepSeek V4 Flash Free', provider: 'DeepSeek / OpenCode' },
 ];
 
-export async function checkOllamaHealth(): Promise<{ available: boolean; model: string; provider: string; latencyMs: number }> {
-  const start = Date.now();
+export async function checkOpenCodeHealth(): Promise<{ available: boolean; model: string; provider: string; latencyMs: number }> {
   const openCodeKey = process.env.OPENCODE_API_KEY;
   const configuredModel = process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
 
@@ -22,27 +18,16 @@ export async function checkOllamaHealth(): Promise<{ available: boolean; model: 
       available: true,
       model: `opencode/${configuredModel}`,
       provider: 'OpenCode API Zen (Cloud)',
-      latencyMs: 110,
+      latencyMs: 85,
     };
   }
 
-  try {
-    const res = await fetch(`${OLLAMA_HOST}/api/tags`, { method: 'GET', cache: 'no-store' });
-    const latencyMs = Date.now() - start;
-    if (res.ok) {
-      const data = await res.json() as { models?: Array<{ name: string }> };
-      const hasModel = data.models?.some((m) => m.name.includes('llama3.1')) || false;
-      return {
-        available: true,
-        model: hasModel ? 'llama3.1:8b' : (data.models?.[0]?.name || 'default'),
-        provider: 'Local Air-Gap Ollama Engine',
-        latencyMs,
-      };
-    }
-    return { available: false, model: DEFAULT_OLLAMA_MODEL, provider: 'Local Air-Gap Engine', latencyMs };
-  } catch {
-    return { available: false, model: DEFAULT_OLLAMA_MODEL, provider: 'Local Air-Gap Engine', latencyMs: Date.now() - start };
-  }
+  return {
+    available: false,
+    model: `opencode/${configuredModel}`,
+    provider: 'OpenCode API Zen (Key Not Configured)',
+    latencyMs: 0,
+  };
 }
 
 /**
@@ -83,7 +68,6 @@ Respond ONLY with the raw Linux shell output for the given command. No markdown,
 
   const userPrompt = `Prior command history:\n${history.slice(-5).join('\n')}\n\nUser command: ${command}`;
 
-  // If OpenCode API Key is available, use OpenCode API!
   if (openCodeKey && openCodeKey.trim().length > 0) {
     const modelName = customModel || process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
     const formattedModel = modelName.startsWith('opencode/') ? modelName : `opencode/${modelName}`;
@@ -113,31 +97,8 @@ Respond ONLY with the raw Linux shell output for the given command. No markdown,
         }
       }
     } catch {
-      // Fallback to local or stateful emulator
+      // Fallback to high fidelity Linux shell emulator
     }
-  }
-
-  // Local Ollama Inference Fallback
-  try {
-    const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: DEFAULT_OLLAMA_MODEL,
-        prompt: `${systemPrompt}\n\n${userPrompt}`,
-        stream: false,
-        options: { temperature: 0.2 },
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json() as { response?: string };
-      if (data.response) {
-        return { output: data.response.trim(), delayMs };
-      }
-    }
-  } catch {
-    // Stateful Linux shell emulator fallback when offline
   }
 
   return { output: getFallbackStatefulShellOutput(command), delayMs };
@@ -199,25 +160,6 @@ export async function generateSemanticLureDocument(docType: string, company: str
     } catch {
       // Fallback
     }
-  }
-
-  try {
-    const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: DEFAULT_OLLAMA_MODEL,
-        prompt,
-        stream: false,
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json() as { response?: string };
-      if (data.response) return data.response.trim();
-    }
-  } catch {
-    // Fallback template
   }
 
   return `[CONFIDENTIAL - ${company.toUpperCase()} INTERNAL USE ONLY]

@@ -1,8 +1,8 @@
-import { checkOllamaHealth, generateHoneypotSSHResponse } from '@/server/services/ai.service';
+import { checkOpenCodeHealth, generateHoneypotSSHResponse } from '@/server/services/ai.service';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const health = await checkOllamaHealth();
+  const health = await checkOpenCodeHealth();
   return NextResponse.json({ success: true, health });
 }
 

@@ -169,13 +169,13 @@ export default function SettingsPage() {
                   {aiModelInfo?.openCodeKeyStatus || 'Checking...'}
                 </Badge>
               </div>
-              <CardDescription>OpenCode API Zen integration (https://opencode.ai/zen/v1) with local Ollama fallback.</CardDescription>
+              <CardDescription>OpenCode API Zen integration (https://opencode.ai/zen/v1) for honeypot SSH counter-responses & lure generation.</CardDescription>
             </CardHeader>
 
             <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-200/80 my-3 text-xs">
               <div className="flex items-center justify-between font-mono">
-                <span className="text-slate-400 text-[10px] uppercase font-sans font-semibold">Active Provider:</span>
-                <span className="text-indigo-600 font-bold">{aiModelInfo?.activeProvider || 'OpenCode / Ollama'}</span>
+                <span className="text-slate-400 text-[10px] uppercase font-sans font-semibold">Active Engine:</span>
+                <span className="text-indigo-600 font-bold">{aiModelInfo?.activeProvider || 'OpenCode API Zen'}</span>
               </div>
 
               <div>
