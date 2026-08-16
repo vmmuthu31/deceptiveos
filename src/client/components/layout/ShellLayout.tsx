@@ -10,7 +10,7 @@ interface ShellLayoutProps {
   children: React.ReactNode;
 }
 
-const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-otp'];
 
 export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
   const pathname = usePathname();

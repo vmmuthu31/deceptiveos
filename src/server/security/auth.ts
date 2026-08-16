@@ -13,6 +13,9 @@ export interface UserProfile {
 
 export interface UserRecord extends UserProfile {
   passwordHash: string;
+  isVerified?: boolean;
+  otpCode?: string;
+  otpExpiresAt?: number;
 }
 
 const JWT_SECRET_KEY = new TextEncoder().encode(
@@ -24,7 +27,7 @@ const COOKIE_NAME = 'cipher_token';
 // In-Memory User Store (Fallback / Database Pooler Ready Interface)
 const userStore: Map<string, UserRecord> = new Map();
 
-// Seed Initial Admin User
+// Seed Initial Admin User (Pre-verified)
 const defaultHash = bcrypt.hashSync('Password123!', 10);
 const defaultAdmin: UserRecord = {
   id: 'usr_admin_01',
@@ -33,6 +36,7 @@ const defaultAdmin: UserRecord = {
   organization: 'Cyber Deception Ops',
   role: 'admin',
   passwordHash: defaultHash,
+  isVerified: true,
   createdAt: new Date().toISOString(),
 };
 userStore.set(defaultAdmin.email.toLowerCase(), defaultAdmin);
@@ -90,35 +94,94 @@ export function findUserByEmail(email: string): UserRecord | undefined {
   return userStore.get(email.toLowerCase());
 }
 
-export async function registerUserAccount(data: {
+export async function registerPendingUserAccount(data: {
   email: string;
   password: string;
   name: string;
   organization?: string;
-}): Promise<{ user: UserProfile; token: string }> {
+}): Promise<{ email: string; otpCode: string }> {
   const normalizedEmail = data.email.toLowerCase();
 
-  if (userStore.has(normalizedEmail)) {
-    throw new Error('An account with this email address already exists.');
+  const existing = userStore.get(normalizedEmail);
+  if (existing && existing.isVerified) {
+    throw new Error('An account with this email address already exists and is verified.');
   }
 
   const passwordHash = await hashPassword(data.password);
-  const newUser: UserRecord = {
-    id: `usr_${Date.now().toString(36)}`,
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpiresAt = Date.now() + 1000 * 60 * 10; // 10 minutes
+
+  const pendingUser: UserRecord = {
+    id: existing?.id || `usr_${Date.now().toString(36)}`,
     email: normalizedEmail,
     name: data.name,
     organization: data.organization || 'SecOps Team',
     role: 'admin',
     passwordHash,
+    isVerified: false,
+    otpCode,
+    otpExpiresAt,
     createdAt: new Date().toISOString(),
   };
 
-  userStore.set(normalizedEmail, newUser);
+  userStore.set(normalizedEmail, pendingUser);
+  return { email: normalizedEmail, otpCode };
+}
 
-  const { passwordHash: _, ...profile } = newUser;
+export async function verifyUserOtp(data: {
+  email: string;
+  otpCode: string;
+}): Promise<{ user: UserProfile; token: string }> {
+  const normalizedEmail = data.email.toLowerCase();
+  const user = userStore.get(normalizedEmail);
+
+  if (!user) {
+    throw new Error('User registration record not found.');
+  }
+
+  if (user.isVerified) {
+    const { passwordHash: _, otpCode: __, otpExpiresAt: ___, ...profile } = user;
+    const token = await createSessionToken(profile);
+    return { user: profile, token };
+  }
+
+  if (!user.otpCode || user.otpCode !== data.otpCode.trim()) {
+    throw new Error('Invalid OTP verification code.');
+  }
+
+  if (user.otpExpiresAt && Date.now() > user.otpExpiresAt) {
+    throw new Error('OTP code has expired. Please request a new verification code.');
+  }
+
+  // Mark account as verified
+  user.isVerified = true;
+  delete user.otpCode;
+  delete user.otpExpiresAt;
+  userStore.set(normalizedEmail, user);
+
+  const { passwordHash: _, ...profile } = user;
   const token = await createSessionToken(profile);
-
   return { user: profile, token };
+}
+
+export async function resendUserOtp(email: string): Promise<string> {
+  const normalizedEmail = email.toLowerCase();
+  const user = userStore.get(normalizedEmail);
+
+  if (!user) {
+    throw new Error('User registration record not found.');
+  }
+
+  if (user.isVerified) {
+    throw new Error('Account is already verified. You can log in directly.');
+  }
+
+  const newOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  user.otpCode = newOtpCode;
+  user.otpExpiresAt = Date.now() + 1000 * 60 * 10;
+  userStore.set(normalizedEmail, user);
+
+  return newOtpCode;
 }
 
 export async function authenticateUserLogin(data: {

@@ -166,3 +166,42 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
   }
 }
 
+export async function sendRegistrationOTPEmail(email: string, otpCode: string): Promise<boolean> {
+  const transporter = createTransporter();
+
+  try {
+    await transporter.sendMail({
+      from: SMTP_FROM,
+      to: email,
+      subject: `🔑 [CipherNest] ${otpCode} is your Email Verification Code`,
+      html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 28px; border-radius: 12px; color: #0f172a; max-width: 540px; margin: 0 auto; border: 1px solid #e2e8f0;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #2563eb; margin: 0; font-size: 20px; text-transform: uppercase;">CIPHER<span style="color: #0f172a;">NEST</span></h2>
+            <p style="font-size: 11px; color: #64748b; margin-top: 4px; font-family: monospace;">ADVERSARIAL AI DEFENSE ENGINE</p>
+          </div>
+          <h3 style="color: #0f172a; margin-top: 0; font-size: 16px;">Verify Your Email Address</h3>
+          <p style="font-size: 14px; color: #475569; line-height: 1.5;">
+            Thank you for registering a Security Analyst account on CipherNest. Enter the 6-digit verification code below to complete your registration:
+          </p>
+          <div style="text-align: center; margin: 24px 0;">
+            <div style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; border-radius: 12px; font-weight: bold; font-size: 28px; letter-spacing: 8px; display: inline-block; font-family: monospace;">
+              ${otpCode}
+            </div>
+          </div>
+          <p style="font-size: 12px; color: #64748b; text-align: center;">
+            This code is valid for <strong>10 minutes</strong>.
+          </p>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 24px; text-align: center;">
+            If you did not register for a CipherNest account, please ignore this email.
+          </p>
+        </div>
+      `,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+

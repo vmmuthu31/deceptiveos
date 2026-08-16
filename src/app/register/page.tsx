@@ -72,8 +72,7 @@ export default function RegisterPage() {
       const data = await res.json() as { success: boolean; error?: string };
 
       if (res.ok && data.success) {
-        router.push('/dashboard');
-        router.refresh();
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
       } else {
         setError(data.error || 'Registration failed');
       }

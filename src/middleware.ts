@@ -29,12 +29,12 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if ((pathname === '/login' || pathname === '/register') && token) {
+  if ((pathname === '/login' || pathname === '/register' || pathname === '/verify-otp') && token) {
     try {
       await jwtVerify(token, JWT_SECRET_KEY);
       return NextResponse.redirect(new URL('/dashboard', req.url));
     } catch {
-      // Token expired, allow visiting login/register
+      // Token expired, allow visiting login/register/verify-otp
     }
   }
 
@@ -42,6 +42,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/honeypots/:path*', '/events/:path*', '/alerts/:path*', '/lures/:path*', '/settings/:path*', '/login', '/register'],
+  matcher: ['/dashboard/:path*', '/honeypots/:path*', '/events/:path*', '/alerts/:path*', '/lures/:path*', '/settings/:path*', '/login', '/register', '/verify-otp'],
 };
+
 

@@ -1,5 +1,5 @@
-import { registerUserAccount } from '@/server/security/auth';
-import { cookies } from 'next/headers';
+import { registerPendingUserAccount } from '@/server/security/auth';
+import { sendRegistrationOTPEmail } from '@/server/services/email.service';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -15,18 +15,17 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = RegisterSchema.parse(body);
 
-    const { user, token } = await registerUserAccount(parsed);
+    const { email, otpCode } = await registerPendingUserAccount(parsed);
 
-    const cookieStore = await cookies();
-    cookieStore.set('cipher_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
+    // Dispatch OTP verification email
+    await sendRegistrationOTPEmail(email, otpCode);
+
+    return NextResponse.json({
+      success: true,
+      requiresOtp: true,
+      email,
+      otpCode, // Returned for dev testing convenience
     });
-
-    return NextResponse.json({ success: true, user });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message || 'Registration failed' },
