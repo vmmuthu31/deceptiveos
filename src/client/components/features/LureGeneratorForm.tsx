@@ -51,6 +51,20 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
         <CardDescription>
           Uses OpenCode AI to generate realistic company-specific lure documents embedded with steganographic tracking watermarks.
         </CardDescription>
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              setTitle('starknet_shielded_vault_commitments.json');
+              setDocType('JSON');
+              setTargetCompany('Starknet Privacy Ops');
+              setIndustry('STRK20 Shielded DeFi Protocol');
+            }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-semibold hover:bg-indigo-100 transition-colors cursor-pointer"
+          >
+            <span>✨ Preset: STRK20 Shielded Wallet Canary (.json)</span>
+          </button>
+        </div>
       </CardHeader>
 
       <form onSubmit={handleSubmit} className="space-y-4">

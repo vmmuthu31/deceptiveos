@@ -92,6 +92,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             className="bg-transparent text-slate-800 text-xs focus:outline-none cursor-pointer font-medium"
           >
             <option value="Local Air-Gapped Cluster">Cluster: Air-Gapped Local</option>
+            <option value="Starknet Mainnet (STRK20 Shielded)">Cluster: Starknet STRK20 Shielded</option>
             <option value="Staging VPC Decoys">Cluster: Staging VPC</option>
             <option value="Production Decoy Fleet">Cluster: Production Fleet</option>
           </select>
