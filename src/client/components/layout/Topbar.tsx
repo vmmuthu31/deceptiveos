@@ -64,37 +64,37 @@ export const Topbar: React.FC<TopbarProps> = ({
         )}
 
         {/* Integrated Search Bar */}
-        <div className="flex items-center gap-2 bg-slate-100/90 border border-slate-200 px-3.5 py-1.5 rounded-xl text-xs text-slate-600 w-56 sm:w-64 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
-          <RiSearchLine className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center gap-2 bg-slate-100/90 border border-slate-200 px-3 py-1.5 rounded-xl text-xs text-slate-600 w-44 sm:w-52 lg:w-60 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+          <RiSearchLine className="w-4 h-4 text-slate-400 flex-shrink-0" />
           <input
             type="text"
             placeholder="Search pages, IPs, lures..."
-            className="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full"
+            className="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full min-w-0"
           />
           <kbd className="hidden sm:inline text-[9px] font-mono bg-white text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">⌘K</kbd>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* LLM Model Indicator */}
-        <div className="hidden xl:flex items-center gap-1.5 text-xs font-mono text-slate-600 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200">
-          <RiCpuLine className="w-4 h-4 text-indigo-600" />
+        <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono text-slate-600 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200 whitespace-nowrap">
+          <RiCpuLine className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
           <span className="text-slate-400 font-sans">LLM:</span>
-          <span className="font-semibold text-slate-900">{ollamaStatus.model}</span>
+          <span className="font-semibold text-slate-900">MiMo v2.5 Free</span>
         </div>
 
         {/* Cluster Selector */}
-        <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200">
-          <RiGlobalLine className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+        <div className="hidden md:flex items-center gap-1 text-xs text-slate-600 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200 max-w-[210px]">
+          <RiGlobalLine className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
           <select
             value={environment}
             onChange={(e) => setEnvironment(e.target.value)}
-            className="bg-transparent text-slate-800 text-xs focus:outline-none cursor-pointer font-medium"
+            className="bg-transparent text-slate-800 text-xs focus:outline-none cursor-pointer font-medium truncate"
           >
-            <option value="Local Air-Gapped Cluster">Cluster: Air-Gapped Local</option>
-            <option value="Starknet Mainnet (STRK20 Shielded)">Cluster: Starknet STRK20 Shielded</option>
-            <option value="Staging VPC Decoys">Cluster: Staging VPC</option>
-            <option value="Production Decoy Fleet">Cluster: Production Fleet</option>
+            <option value="Local Air-Gapped Cluster">Air-Gapped Local</option>
+            <option value="Starknet Mainnet (STRK20 Shielded)">Starknet STRK20 Shielded</option>
+            <option value="Staging VPC Decoys">Staging VPC</option>
+            <option value="Production Decoy Fleet">Production Fleet</option>
           </select>
         </div>
 
