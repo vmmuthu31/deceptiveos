@@ -9,12 +9,12 @@ export interface UserProfile {
   name: string;
   organization: string;
   role: 'admin' | 'analyst';
+  isVerified?: boolean;
   createdAt: string;
 }
 
 export interface UserRecord extends UserProfile {
   passwordHash: string;
-  isVerified?: boolean;
   otpCode?: string;
   otpExpiresAt?: number;
 }
@@ -89,6 +89,7 @@ export async function createSessionToken(user: UserProfile): Promise<string> {
     name: user.name,
     organization: user.organization,
     role: user.role,
+    isVerified: user.isVerified ?? false,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()

@@ -20,7 +20,12 @@ export async function middleware(req: NextRequest) {
     }
 
     try {
-      await jwtVerify(token, JWT_SECRET_KEY);
+      const { payload } = await jwtVerify(token, JWT_SECRET_KEY);
+      if (payload.isVerified === false) {
+        const email = (payload.email as string) || '';
+        const verifyUrl = new URL(`/verify-otp?email=${encodeURIComponent(email)}`, req.url);
+        return NextResponse.redirect(verifyUrl);
+      }
     } catch {
       const loginUrl = new URL('/login', req.url);
       const res = NextResponse.redirect(loginUrl);
@@ -29,12 +34,16 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if ((pathname === '/login' || pathname === '/register' || pathname === '/verify-otp') && token) {
+  if ((pathname === '/login' || pathname === '/register') && token) {
     try {
-      await jwtVerify(token, JWT_SECRET_KEY);
+      const { payload } = await jwtVerify(token, JWT_SECRET_KEY);
+      if (payload.isVerified === false) {
+        const email = (payload.email as string) || '';
+        return NextResponse.redirect(new URL(`/verify-otp?email=${encodeURIComponent(email)}`, req.url));
+      }
       return NextResponse.redirect(new URL('/dashboard', req.url));
     } catch {
-      // Token expired, allow visiting login/register/verify-otp
+      // Token expired, allow visiting login/register
     }
   }
 
