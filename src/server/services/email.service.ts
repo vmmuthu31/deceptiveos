@@ -23,15 +23,15 @@ function createTransporter() {
 /**
  * Returns list of dynamic recipient email addresses based on active Admin users
  */
-export function getDynamicAlertRecipients(overrideEmail?: string): string[] {
+export async function getDynamicAlertRecipients(overrideEmail?: string): Promise<string[]> {
   if (overrideEmail && overrideEmail.trim().length > 0) {
     return [overrideEmail.trim()];
   }
-  return getAdminUserEmails();
+  return await getAdminUserEmails();
 }
 
 export async function sendTestAlertEmail(toEmail?: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const recipients = getDynamicAlertRecipients(toEmail);
+  const recipients = await getDynamicAlertRecipients(toEmail);
   const transporter = createTransporter();
 
   try {
@@ -65,7 +65,7 @@ export async function sendTestAlertEmail(toEmail?: string): Promise<{ success: b
 }
 
 export async function sendHoneypotBreachEmail(event: SessionEvent): Promise<boolean> {
-  const recipients = getDynamicAlertRecipients();
+  const recipients = await getDynamicAlertRecipients();
   const transporter = createTransporter();
 
   try {
@@ -97,7 +97,7 @@ export async function sendHoneypotBreachEmail(event: SessionEvent): Promise<bool
 }
 
 export async function sendBeaconCallbackEmail(beacon: BeaconEvent): Promise<boolean> {
-  const recipients = getDynamicAlertRecipients();
+  const recipients = await getDynamicAlertRecipients();
   const transporter = createTransporter();
 
   try {
