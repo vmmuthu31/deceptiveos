@@ -83,8 +83,10 @@ API_SECRET=sk_live_${tokenStr}
     watermarkedContent = `${rawContent}\n\n/* STEGO_WATERMARK:${watermark.stegoWhitespaceSignature} METADATA_TAG:${watermark.metadataTag} BEACON:http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr} */`;
   }
 
+  const lureId = `lure-doc-${Date.now().toString(36)}`;
+
   const newLure: LureDocument = {
-    id: `lure-doc-${Date.now().toString(36)}`,
+    id: lureId,
     title: data.title,
     docType: data.docType,
     targetCompany: data.targetCompany,
@@ -92,7 +94,7 @@ API_SECRET=sk_live_${tokenStr}
     watermark,
     beaconHitsCount: 0,
     createdAt: new Date().toISOString(),
-    downloadUrl: `/api/lures/download/lure-doc-${Date.now().toString(36)}`,
+    downloadUrl: `/api/lures/download/${lureId}`,
   };
 
   db.lures.unshift(newLure);
