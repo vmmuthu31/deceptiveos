@@ -2,6 +2,7 @@
 
 > **STRK20 Private Sprint Hackathon Architecture Document**
 > *Target Category: Infra / Privacy Infrastructure*
+> *SDK Package:* `@starkware-libs/starknet-privacy-sdk`
 > *Starknet Contract Address:* `0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d`
 
 ---
@@ -94,21 +95,70 @@ CipherNest creates a self-sustaining network effect across three distinct econom
                     └─────────────────────────┘
 ```
 
-1. **Defender (Funder)**: Traps autonomous attackers in AI digital twins, extracts Attacker DNA (`DNA: 7F-A2-91`), and funds a GhostBounty in shielded STRK20. The defender's wallet address and organization identity remain completely hidden on-chain.
-2. **Researcher (Claimant)**: Discovers matching threat intelligence (C2 IP addresses, payload signatures, campaign targets) and claims the bounty anonymously. STRK20 transfers shielded tokens directly to the researcher's private balance.
-3. **Intelligence Network (Receiver)**: Receives anonymized, zero-knowledge threat correlation signatures that protect all participating defenders against identical autonomous AI attack campaigns.
-
 ---
 
-## 4. Privacy Threat Model & Guarantees
+## 4. Official SDK Technical Wiring (`@starkware-libs/starknet-privacy-sdk`)
 
-| Data Element | Public On-Chain | Private Shielded (CipherNest + STRK20) |
-| :--- | :--- | :--- |
-| **Defender Identity / Wallet** | ❌ HIPP/SOC 2 Shielded | ✓ 100% Anonymous |
-| **Attacker DNA Fingerprint** | ✓ Commitment Hash (`7F-A2-91`) | Raw telemetry kept local |
-| **Bounty Amount (STRK)** | ✓ Public Escrow Commitment | UTXO Shielded Note |
-| **Researcher Wallet Address** | ❌ Hidden | ✓ Encrypted Note Transfer |
-| **Raw C2 / Payload Intel** | ❌ Hidden | Verified via ZK Proof |
+CipherNest builds directly on top of the official Starkware Privacy SDK factory:
+
+### 4.1 Factory & Provider Initialization (`createPrivateTransfers`)
+```typescript
+import { Account, RpcProvider, constants } from "starknet"
+import {
+  createPrivateTransfers,
+  ProvingServiceProofProvider,
+} from "@starkware-libs/starknet-privacy-sdk"
+import { IndexerDiscoveryProvider } from "@starkware-libs/starknet-privacy-sdk/dist/internal/indexer-discovery.js"
+
+const provider = new RpcProvider({ nodeUrl: process.env.RPC_URL! })
+const account = new Account({
+  provider,
+  address: process.env.ACCOUNT_ADDRESS!,
+  signer: process.env.ACCOUNT_PRIVATE_KEY!,
+  cairoVersion: "1",
+})
+
+const transfers = createPrivateTransfers({
+  account,
+  viewingKeyProvider: {
+    // MANDATORY: viewing key MUST be a BigInt (k)
+    getViewingKey: async () => BigInt(process.env.VIEWING_KEY!),
+  },
+  provingProvider: new ProvingServiceProofProvider(
+    process.env.PROVING_SERVICE_URL!,
+    constants.StarknetChainId.SN_SEPOLIA,
+  ),
+  discoveryProvider: new IndexerDiscoveryProvider(
+    process.env.INDEXER_URL!,
+    process.env.POOL_ADDRESS!,
+  ),
+  poolContractAddress: process.env.POOL_ADDRESS!,
+})
+```
+
+### 4.2 On-Chain Key Registration (`autoRegister: true`)
+Before an account can receive private note transfers, its public viewing key is registered on-chain:
+```typescript
+const provingBlockId = (await provider.getBlockNumber()) - 10
+
+const { callAndProof } = await transfers
+  .build({ autoRegister: true, autoSetup: true })
+  .with(tokenAddress, (t) => t.deposit({ amount: 250n }))
+  .surplusTo(account.address)
+  .execute({ provingBlockId })
+```
+
+### 4.3 Transaction Submission Tail & Proving Safety
+- **Note Maturity Window (`provingBlockId`)**: Proving is executed against `currentBlock - 10` so newly created notes have matured 10 blocks after creation.
+- **Starknet v3 Transaction Tail**: Uses `tip: 0n` and conditionally spreads `proofFacts`.
+```typescript
+const proofDetails = callAndProof.proof.proofFacts?.length
+  ? { proofFacts: callAndProof.proof.proofFacts, proof: callAndProof.proof.data }
+  : {}
+
+const tx = await account.execute(callAndProof.call, { tip: 0n, ...proofDetails })
+await provider.waitForTransaction(tx.transaction_hash)
+```
 
 ---
 
@@ -154,5 +204,6 @@ Hackathon judges can test the end-to-end mainnet flow directly from the CipherNe
 ## 7. Project Verification Summary
 
 - **ESLint & TypeScript**: `bun run lint` (`tsc --noEmit && eslint .`) ➔ **Passed (0 Errors, 0 Warnings)**.
+- **SDK Spec**: `@starkware-libs/starknet-privacy-sdk`.
 - **Metadata Spec**: [`strk20.json`](./strk20.json) (Category: `Infra`).
 - **Mainnet Contract**: `0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d`.
