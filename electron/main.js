@@ -59,7 +59,6 @@ function createWindow() {
   });
 }
 
-// Docker CLI status check via IPC
 ipcMain.handle('check-docker-status', async () => {
   return new Promise((resolve) => {
     exec('docker ps --format "{{.ID}}|{{.Names}}|{{.Status}}|{{.Ports}}"', (error, stdout) => {

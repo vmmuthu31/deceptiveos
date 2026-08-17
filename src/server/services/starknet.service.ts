@@ -10,24 +10,24 @@ export interface ShieldedUtxoCanary {
 }
 
 export interface Strk20SdkConfig {
-  sdkPackage: string; // @starkware-libs/starknet-privacy-sdk
-  factoryMethod: string; // createPrivateTransfers
+  sdkPackage: string;
+  factoryMethod: string;
   poolContractAddress: string;
   viewingKeyProvider: {
     type: string;
-    keyType: string; // BigInt (Mandatory in SDK)
+    keyType: string;
   };
   provingProvider: {
-    type: string; // ProvingServiceProofProvider
-    circuitVersion: string; // Cairo v3
+    type: string;
+    circuitVersion: string;
   };
   discoveryProvider: {
-    type: string; // IndexerDiscoveryProvider
+    type: string;
     indexerUrl: string;
   };
   submissionRules: {
-    provingBlockIdOffset: number; // 10 blocks (Note maturity & reorg buffer)
-    v3TransactionTip: string; // tip: 0n
+    provingBlockIdOffset: number;
+    v3TransactionTip: string;
   };
 }
 
