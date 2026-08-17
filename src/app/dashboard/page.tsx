@@ -1,6 +1,7 @@
 'use client';
 
 import { EventFeed } from '@/client/components/features/EventFeed';
+import { SshTerminalPlayground } from '@/client/components/features/SshTerminalPlayground';
 import { TerminalReplay } from '@/client/components/features/TerminalReplay';
 import { Button } from '@/client/components/ui/Button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/Card';
@@ -388,10 +389,11 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <RiFingerprintLine className="w-4 h-4 text-indigo-600" />
-              <CardTitle>Counter-LLM Session Shell</CardTitle>
+              <CardTitle>Interactive Live SSH Sandbox</CardTitle>
             </div>
-            <CardDescription>Interactive terminal shell simulating living honeypot responses</CardDescription>
+            <CardDescription>Type real shell commands to test OpenCode AI responses & live Attacker DNA extraction</CardDescription>
           </CardHeader>
+          <SshTerminalPlayground onCommandExecuted={loadDashboardData} />
           <TerminalReplay initialEvent={selectedEvent} />
         </div>
       </div>
