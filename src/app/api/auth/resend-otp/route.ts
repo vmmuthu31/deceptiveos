@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       success: true,
       emailSent,
       message: 'A new OTP verification code has been sent to your email.',
-      otpCode: newOtpCode, // Included for dev testing verification
+      otpCode: newOtpCode,
     });
   } catch (error: any) {
     console.error('[RESEND OTP API ERROR]:', error);

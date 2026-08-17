@@ -27,7 +27,7 @@ export default function TreasuryPage() {
         setTreasury(data.treasury);
       }
     } catch {
-      // error
+
     }
   }
 
@@ -50,7 +50,7 @@ export default function TreasuryPage() {
         setTreasury(data.treasury);
       }
     } catch {
-      // error
+
     } finally {
       setExecuting(false);
     }
@@ -62,7 +62,7 @@ export default function TreasuryPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Hero Banner */}
+      {}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
@@ -80,7 +80,7 @@ export default function TreasuryPage() {
         </div>
       </div>
 
-      {/* 3-Column Balance Cards */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="hover:shadow-md transition-shadow">
           <div className="flex items-start justify-between">
@@ -122,9 +122,9 @@ export default function TreasuryPage() {
         </Card>
       </div>
 
-      {/* 2-Column: Execute STRK20 Transaction & Transaction History */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* STRK20 Lifecycle Form */}
+        {}
         <Card className="lg:col-span-5">
           <CardHeader>
             <CardTitle>Execute STRK20 Operation</CardTitle>
@@ -182,7 +182,7 @@ export default function TreasuryPage() {
           </form>
         </Card>
 
-        {/* Recent Private Operations Table */}
+        {}
         <Card className="lg:col-span-7">
           <CardHeader>
             <CardTitle>Recent Private STRK20 Operations</CardTitle>

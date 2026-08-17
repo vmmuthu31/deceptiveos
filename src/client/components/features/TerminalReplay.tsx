@@ -71,7 +71,7 @@ export const TerminalReplay: React.FC<TerminalReplayProps> = ({ initialEvent }) 
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-900 overflow-hidden flex flex-col h-[480px] font-sans shadow-md">
-      {/* Terminal Top Window Header */}
+      {}
       <div className="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2 font-mono text-xs text-slate-300">
           <RiTerminalBoxLine className="w-4 h-4 text-indigo-400" />
@@ -104,7 +104,7 @@ export const TerminalReplay: React.FC<TerminalReplayProps> = ({ initialEvent }) 
         </div>
       </div>
 
-      {/* Terminal Screen Body */}
+      {}
       <div className="flex-1 p-4 font-mono text-xs overflow-y-auto space-y-3 bg-slate-900">
         {history.map((item, idx) => (
           <div key={idx} className="space-y-1">
@@ -130,7 +130,7 @@ export const TerminalReplay: React.FC<TerminalReplayProps> = ({ initialEvent }) 
         )}
       </div>
 
-      {/* Terminal Command Input Bar */}
+      {}
       <form onSubmit={handleRunCommand} className="bg-slate-950 p-2.5 border-t border-slate-800 flex items-center gap-2">
         <span className="font-mono text-xs text-emerald-400 pl-2 select-none">root@cipher-decoy:~#</span>
         <input

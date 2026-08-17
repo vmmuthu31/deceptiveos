@@ -20,7 +20,7 @@ export default function EventsPage() {
           setEvents(data.events || []);
         }
       } catch {
-        // fallback
+
       }
     }
     loadEvents();

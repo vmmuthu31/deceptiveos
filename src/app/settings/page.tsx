@@ -54,7 +54,7 @@ export default function SettingsPage() {
           }
         }
       } catch {
-        // fallback
+
       }
     }
     loadSettingsData();
@@ -69,7 +69,7 @@ export default function SettingsPage() {
         setHashVerification(data);
       }
     } catch {
-      // fallback
+
     } finally {
       setVerifyingHash(false);
     }
@@ -90,7 +90,7 @@ export default function SettingsPage() {
         a.remove();
       }
     } catch {
-      // fallback
+
     } finally {
       setExporting(false);
     }
@@ -154,7 +154,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* OpenCode AI Engine */}
+        {}
         <Card className="flex flex-col justify-between hover:shadow-md transition-all">
           <div>
             <CardHeader>
@@ -219,7 +219,7 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        {/* Nodemailer Security Email Alerts */}
+        {}
         <Card className="flex flex-col justify-between hover:shadow-md transition-all">
           <div>
             <CardHeader>
@@ -270,7 +270,7 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        {/* Cryptographic SHA-256 Audit Chain */}
+        {}
         <Card className="flex flex-col justify-between hover:shadow-md transition-all md:col-span-2">
           <div>
             <CardHeader>

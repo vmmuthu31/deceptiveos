@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
     const { email, otpCode } = await registerPendingUserAccount(parsed);
 
-    // Dispatch OTP verification email
+
     const emailSent = await sendRegistrationOTPEmail(email, otpCode);
     console.log(`[REGISTER OTP DISPATCH]: Email to ${email} | Sent: ${emailSent} | OTP: ${otpCode}`);
 
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       requiresOtp: true,
       email,
       emailSent,
-      otpCode, // Included for dev testing verification
+      otpCode,
     });
   } catch (error: any) {
     console.error('[REGISTER API ERROR]:', error);

@@ -29,7 +29,7 @@ export default function LuresPage() {
           setBeacons(beaconData.beacons || []);
         }
       } catch {
-        // fallback
+
       }
     }
     loadData();
@@ -55,7 +55,7 @@ export default function LuresPage() {
         );
       }
     } catch {
-      // fallback
+
     }
   };
 

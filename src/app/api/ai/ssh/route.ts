@@ -11,14 +11,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Command is required' }, { status: 400 });
     }
 
-    // 1. Generate SSH output using OpenCode AI
+
     const { output, delayMs } = await generateHoneypotSSHResponse(command, history);
 
-    // 2. Classify session with Attacker DNA engine
+
     const fullHistory = [...history, command];
     const classification = await classifyAttackerSession(fullHistory);
 
-    // 3. Append to live database
+
     const db = readDb();
     const sessionId = 'sess-interactive-demo';
     const timestamp = new Date().toISOString();

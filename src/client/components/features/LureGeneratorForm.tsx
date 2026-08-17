@@ -33,7 +33,7 @@ export const LureGeneratorForm: React.FC<LureGeneratorFormProps> = ({ onLureGene
         onLureGenerated(data.lure, data.content);
       }
     } catch {
-      // fallback
+
     } finally {
       setLoading(false);
     }

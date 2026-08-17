@@ -43,7 +43,7 @@ export async function middleware(req: NextRequest) {
       }
       return NextResponse.redirect(new URL('/dashboard', req.url));
     } catch {
-      // Token expired, allow visiting login/register
+
     }
   }
 

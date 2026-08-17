@@ -18,7 +18,7 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
 
   const isAuthPage = AUTH_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
-  // Close mobile drawer on route change or screen resize
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -35,7 +35,7 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
 
   return (
     <div className="flex h-screen min-h-dvh overflow-hidden bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-indigo-500 selection:text-white">
-      {/* App Sidebar */}
+      {}
       <Sidebar
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}
@@ -43,16 +43,16 @@ export const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
         onCloseMobile={() => setMobileOpen(false)}
       />
 
-      {/* Main Workspace Column */}
+      {}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col relative bg-[#F8FAFC]">
-        {/* Topbar Header */}
+        {}
         <Topbar
           collapsed={collapsed}
           onToggleCollapse={() => setCollapsed(!collapsed)}
           onOpenMobile={() => setMobileOpen(true)}
         />
 
-        {/* Main Workspace Scroll View */}
+        {}
         <main className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-hidden bg-[#F8FAFC]">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 lg:p-8 space-y-6">
             {children}

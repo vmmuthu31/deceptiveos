@@ -33,7 +33,7 @@ export default function GhostBountiesPage() {
         setBounties(data.bounties || []);
       }
     } catch {
-      // error
+
     }
   }
 
@@ -57,7 +57,7 @@ export default function GhostBountiesPage() {
         setDescription('');
       }
     } catch {
-      // error
+
     }
   }
 
@@ -77,13 +77,13 @@ export default function GhostBountiesPage() {
         setIntelReport('');
       }
     } catch {
-      // error
+
     }
   }
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Hero Banner */}
+      {}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
@@ -106,7 +106,7 @@ export default function GhostBountiesPage() {
         </div>
       </div>
 
-      {/* Grid of Active GhostBounties */}
+      {}
       {bounties.length === 0 ? (
         <Card className="p-8 text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center border border-indigo-100">
@@ -174,7 +174,7 @@ export default function GhostBountiesPage() {
       </div>
       )}
 
-      {/* Fund Bounty Modal */}
+      {}
       {fundingModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-6 space-y-4">
@@ -237,7 +237,7 @@ export default function GhostBountiesPage() {
         </div>
       )}
 
-      {/* Claim Bounty Modal */}
+      {}
       {claimModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-6 space-y-4">

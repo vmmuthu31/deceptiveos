@@ -29,7 +29,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           if (data.health) setOllamaStatus(data.health);
         }
       } catch {
-        // fallback
+
       }
     }
     async function loadUser() {
@@ -40,7 +40,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           if (data.user) setCurrentUser(data.user);
         }
       } catch {
-        // fallback
+
       }
     }
     checkHealth();
@@ -50,7 +50,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   return (
     <header className="h-16 shrink-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between font-sans z-30 shadow-xs">
       <div className="flex items-center gap-3">
-        {/* Mobile Menu Toggle */}
+        {}
         {onOpenMobile && (
           <button
             onClick={onOpenMobile}
@@ -61,7 +61,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           </button>
         )}
 
-        {/* Integrated Search Bar */}
+        {}
         <div className="flex items-center gap-2 bg-slate-100/90 border border-slate-200 px-3 py-1.5 rounded-xl text-xs text-slate-600 w-44 sm:w-52 lg:w-60 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
           <RiSearchLine className="w-4 h-4 text-slate-400 flex-shrink-0" />
           <input
@@ -74,14 +74,14 @@ export const Topbar: React.FC<TopbarProps> = ({
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* LLM Model Indicator */}
+        {}
         <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono text-slate-600 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200 whitespace-nowrap">
           <RiCpuLine className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
           <span className="text-slate-400 font-sans">LLM:</span>
           <span className="font-semibold text-slate-900">{ollamaStatus.model.includes('mimo') ? 'MiMo v2.5 Free' : ollamaStatus.model}</span>
         </div>
 
-        {/* Cluster Selector */}
+        {}
         <div className="hidden md:flex items-center gap-1 text-xs text-slate-600 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200 max-w-[210px]">
           <RiGlobalLine className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
           <select
@@ -96,7 +96,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           </select>
         </div>
 
-        {/* Primary Deploy Button */}
+        {}
         <a href="/honeypots">
           <Button size="sm" variant="primary" className="rounded-xl shadow-xs text-xs font-semibold">
             <RiAddLine className="w-4 h-4" />
@@ -104,7 +104,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           </Button>
         </a>
 
-        {/* Notification Bell */}
+        {}
         <div className="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors">
           <RiBellLine className="w-5 h-5" />
           <span className="w-2 h-2 rounded-full bg-indigo-600 absolute top-2 right-2 border-2 border-white" />
@@ -112,7 +112,7 @@ export const Topbar: React.FC<TopbarProps> = ({
 
         <div className="h-6 w-[1px] bg-slate-200 hidden sm:block" />
 
-        {/* Dynamic User Profile Badge */}
+        {}
         <div className="flex items-center gap-2.5 pl-1">
           <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs border border-indigo-400/40">
             <RiUser3Line className="w-4 h-4" />

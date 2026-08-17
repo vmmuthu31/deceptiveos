@@ -38,7 +38,7 @@ export async function createLureDocument(data: {
   let watermarkedContent = '';
 
   if (data.docType === 'PDF') {
-    // Generate authentic HTML/PDF container format with pixel canary tracking tag
+
     watermarkedContent = `<!DOCTYPE html>
 <html>
 <head>
@@ -80,7 +80,7 @@ DB_PASS=${tokenStr}
 API_SECRET=sk_live_${tokenStr}
 # STATIVE_TOKEN=${watermark.metadataTag} ${watermark.stegoWhitespaceSignature}`;
   } else {
-    watermarkedContent = `${rawContent}\n\n/* STEGO_WATERMARK:${watermark.stegoWhitespaceSignature} METADATA_TAG:${watermark.metadataTag} BEACON:http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr} */`;
+    watermarkedContent = `${rawContent}\n\n`;
   }
 
   const lureId = `lure-doc-${Date.now().toString(36)}`;

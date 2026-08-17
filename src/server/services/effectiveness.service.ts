@@ -1,13 +1,13 @@
 import { readDb } from '@/server/db/database';
 
 export interface DeceptionEffectivenessScore {
-  attackerTrappedRate: number; // e.g. 94.7%
-  decoyEngagementRate: number; // e.g. 82.3%
-  realAssetExposureRate: number; // e.g. 0.0%
-  detectionLatencySeconds: number; // e.g. 1.8s
-  attackerDwellDelayMinutes: number; // e.g. 17m
-  extractedTtpsCount: number; // e.g. 13
-  dnaConfidencePercentage: number; // e.g. 96.1%
+  attackerTrappedRate: number;
+  decoyEngagementRate: number;
+  realAssetExposureRate: number;
+  detectionLatencySeconds: number;
+  attackerDwellDelayMinutes: number;
+  extractedTtpsCount: number;
+  dnaConfidencePercentage: number;
   comparisonBenchmark: {
     metric: string;
     staticHoneypot: string;

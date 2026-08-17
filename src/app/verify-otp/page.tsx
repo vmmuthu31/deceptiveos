@@ -32,7 +32,7 @@ function VerifyOtpForm() {
     if (emailParam) setEmail(emailParam);
   }, [emailParam]);
 
-  // Cooldown timer for Resend OTP
+
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -47,7 +47,7 @@ function VerifyOtpForm() {
     newDigits[index] = value.slice(-1);
     setDigits(newDigits);
 
-    // Auto-advance to next input
+
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }

@@ -31,7 +31,7 @@ export default function HoneypotsPage() {
           setTwinMetadata(twinData.metadata || null);
         }
       } catch {
-        // fallback
+
       }
     }
     loadData();
@@ -49,7 +49,7 @@ export default function HoneypotsPage() {
         setHoneypots((prev) => prev.map((h) => (h.id === id ? data.honeypot : h)));
       }
     } catch {
-      // fallback
+
     }
   };
 
@@ -74,13 +74,13 @@ export default function HoneypotsPage() {
         setCreating(false);
       }
     } catch {
-      // fallback
+
     }
   };
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Page Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
@@ -99,7 +99,7 @@ export default function HoneypotsPage() {
         </Button>
       </div>
 
-      {/* Deployment Form */}
+      {}
       {creating && (
         <Card className="border-indigo-200 shadow-sm">
           <CardHeader>
@@ -144,14 +144,14 @@ export default function HoneypotsPage() {
         </Card>
       )}
 
-      {/* Honeypots Grid */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {honeypots.map((hp) => (
           <HoneypotCard key={hp.id} honeypot={hp} onToggleStatus={handleToggleStatus} />
         ))}
       </div>
 
-      {/* Digital Twin Metadata Scanner */}
+      {}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between w-full">

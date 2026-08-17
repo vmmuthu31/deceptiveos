@@ -20,7 +20,7 @@ export default function ThreatNetworkPage() {
         setNodes(data.nodes || []);
       }
     } catch {
-      // error
+
     }
   }
 
@@ -30,7 +30,7 @@ export default function ThreatNetworkPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Hero Banner */}
+      {}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold">
@@ -46,7 +46,7 @@ export default function ThreatNetworkPage() {
         </div>
       </div>
 
-      {/* Grid of Anonymized Threat Nodes */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {nodes.map((node) => (
           <Card key={node.id} className="hover:shadow-md transition-shadow">

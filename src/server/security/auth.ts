@@ -25,7 +25,7 @@ const JWT_SECRET_KEY = new TextEncoder().encode(
 
 const COOKIE_NAME = 'cipher_token';
 
-// Real PostgreSQL Pool (Connected via DATABASE_URL)
+
 let dbPool: Pool | null = null;
 if (process.env.DATABASE_URL) {
   try {
@@ -38,11 +38,11 @@ if (process.env.DATABASE_URL) {
   }
 }
 
-// In-Memory User Store (Empty runtime store, NO HARDCODED INITIAL SEEDS)
+
 const runtimeUserStore: Map<string, UserRecord> = new Map();
 const runtimeResetStore: Map<string, { email: string; expiresAt: number }> = new Map();
 
-// Helper to initialize PostgreSQL tables
+
 async function ensureTablesExist() {
   if (!dbPool) return;
   try {
@@ -71,7 +71,7 @@ async function ensureTablesExist() {
   }
 }
 
-// Fire table check non-blocking
+
 ensureTablesExist().catch(() => {});
 
 export async function hashPassword(password: string): Promise<string> {
@@ -146,7 +146,7 @@ export async function findUserByEmail(email: string): Promise<UserRecord | undef
         };
       }
     } catch {
-      // Fallthrough
+
     }
   }
 
@@ -168,7 +168,7 @@ export async function registerPendingUserAccount(data: {
 
   const passwordHash = await hashPassword(data.password);
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiresAt = Date.now() + 1000 * 60 * 10; // 10 minutes
+  const otpExpiresAt = Date.now() + 1000 * 60 * 10;
   const userId = existing?.id || `usr_${Date.now().toString(36)}`;
   const organization = data.organization || 'SecOps Team';
 
@@ -191,7 +191,7 @@ export async function registerPendingUserAccount(data: {
     }
   }
 
-  // Runtime store fallback if DB is not attached
+
   const pendingUser: UserRecord = {
     id: userId,
     email: normalizedEmail,
@@ -279,7 +279,7 @@ export async function resendUserOtp(email: string): Promise<string> {
       );
       return newOtpCode;
     } catch {
-      // Fallthrough
+
     }
   }
 
@@ -320,7 +320,7 @@ export async function getAdminUserEmails(): Promise<string[]> {
         return res.rows.map((r: { email: string }) => r.email);
       }
     } catch {
-      // Fallthrough
+
     }
   }
 
@@ -342,7 +342,7 @@ export async function createPasswordResetToken(email: string): Promise<string> {
   }
 
   const token = `rst_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
-  const expiresAt = Date.now() + 1000 * 60 * 60; // 1 hour validity
+  const expiresAt = Date.now() + 1000 * 60 * 60;
 
   if (dbPool) {
     try {
@@ -352,7 +352,7 @@ export async function createPasswordResetToken(email: string): Promise<string> {
       );
       return token;
     } catch {
-      // Fallthrough
+
     }
   }
 
@@ -372,7 +372,7 @@ export async function resetUserPassword(token: string, newPassword: string): Pro
         expiresAt = Number(res.rows[0].expires_at);
       }
     } catch {
-      // Fallthrough
+
     }
   }
 
@@ -403,7 +403,7 @@ export async function resetUserPassword(token: string, newPassword: string): Pro
       await dbPool.query('UPDATE users SET password_hash = $1 WHERE LOWER(email) = $2', [passwordHash, email]);
       await dbPool.query('DELETE FROM password_resets WHERE token = $1', [token]);
     } catch {
-      // Fallthrough
+
     }
   }
 

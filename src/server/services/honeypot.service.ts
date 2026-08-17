@@ -54,14 +54,14 @@ export async function createHoneypot(data: {
   const db = readDb();
   const containerId = `doc-${Math.random().toString(36).substring(2, 10)}`;
 
-  // Try real Docker container startup if Docker is available
+
   try {
     execSync(`docker run -d --name cipher-${containerId} -p ${data.port}:${data.port} alpine sleep infinity`, {
       timeout: 4000,
       stdio: 'ignore',
     });
   } catch {
-    // Graceful fallback to process decoy mode when Docker CLI is not running locally
+
   }
 
   const newHp: HoneypotProfile = {
@@ -82,7 +82,7 @@ export async function createHoneypot(data: {
   db.honeypots.push(newHp);
   writeDb(db);
 
-  // Record cryptographic audit block for honeypot creation
+
   appendAuditBlock('HONEYPOT_DECOY_CREATED', { id: newHp.id, type: newHp.type, port: newHp.port });
 
   return newHp;
@@ -96,7 +96,7 @@ export async function toggleHoneypotStatus(id: string): Promise<HoneypotProfile 
   const nextStatus = hp.status === 'active' ? 'stopped' : 'active';
   hp.status = nextStatus;
 
-  // Real Docker container process state control
+
   try {
     if (nextStatus === 'stopped') {
       execSync(`docker stop cipher-${hp.containerId}`, { timeout: 3000, stdio: 'ignore' });
@@ -104,7 +104,7 @@ export async function toggleHoneypotStatus(id: string): Promise<HoneypotProfile 
       execSync(`docker start cipher-${hp.containerId}`, { timeout: 3000, stdio: 'ignore' });
     }
   } catch {
-    // Managed process decoy mode
+
   }
 
   writeDb(db);
@@ -132,7 +132,7 @@ export async function getDigitalTwinMetadata(): Promise<TwinSyncMetadata> {
             scannedDirs.push(item);
           }
         } catch {
-          // ignore
+
         }
       }
     }

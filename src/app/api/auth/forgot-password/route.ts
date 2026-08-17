@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: 'Password reset link sent! Check your email inbox.',
-      token, // Returned for dev testing convenience
+      token,
     });
   } catch (error: any) {
     return NextResponse.json(

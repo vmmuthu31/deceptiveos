@@ -23,9 +23,7 @@ function createTransporter() {
   });
 }
 
-/**
- * Returns list of dynamic recipient email addresses based on active Admin users
- */
+
 export async function getDynamicAlertRecipients(overrideEmail?: string): Promise<string[]> {
   if (overrideEmail && overrideEmail.trim().length > 0) {
     return [overrideEmail.trim()];

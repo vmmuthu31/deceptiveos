@@ -152,7 +152,7 @@ const INITIAL_SEED: DatabaseSchema = {
     },
   ],
   lureContents: {
-    'lure-doc-01': 'Employee,Title,Salary,Bonus,Vault_Passkey\nJohn Doe,CEO,280000,45000,sk_live_ceokey_89f1a2c4\nJane Smith,CTO,240000,35000,sk_live_ctokey_3e4d5c6b\n/* \u200B\u200C\u200B\u200C META:CN-WM-89F1A2C4 */',
+    'lure-doc-01': 'Employee,Title,Salary,Bonus,Vault_Passkey\nJohn Doe,CEO,280000,45000,sk_live_ceokey_89f1a2c4\nJane Smith,CTO,240000,35000,sk_live_ctokey_3e4d5c6b\n',
   },
   auditLedger: [
     {

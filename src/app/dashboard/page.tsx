@@ -34,7 +34,7 @@ export default function DashboardPage() {
   async function loadDashboardData() {
     setSyncing(true);
     try {
-      // 1. Fetch real session events
+
       const res = await fetch('/api/events');
       if (res.ok) {
         const data = await res.json() as { events: SessionEvent[] };
@@ -45,7 +45,7 @@ export default function DashboardPage() {
         }
       }
 
-      // 2. Fetch real active honeypot decoys
+
       const hpRes = await fetch('/api/honeypots');
       if (hpRes.ok) {
         const hpData = await hpRes.json() as { honeypots: { status: string }[] };
@@ -55,28 +55,28 @@ export default function DashboardPage() {
         }
       }
 
-      // 3. Fetch real steganographic lures
+
       const lureRes = await fetch('/api/lures');
       if (lureRes.ok) {
         const lureData = await lureRes.json() as { lures: LureDocument[] };
         setLures(lureData.lures || []);
       }
 
-      // 4. Fetch OpenCode AI latency
+
       const aiRes = await fetch('/api/ai/models');
       if (aiRes.ok) {
         const aiData = await aiRes.json() as { health?: { latencyMs?: number } };
         if (aiData.health?.latencyMs) setAiLatencyMs(aiData.health.latencyMs);
       }
 
-      // 5. Fetch Deception Effectiveness Score
+
       const scoreRes = await fetch('/api/analytics/score');
       if (scoreRes.ok) {
         const scoreData = await scoreRes.json();
         setDeceptionScore(scoreData.score);
       }
     } catch {
-      // Error handling
+
     } finally {
       setSyncing(false);
     }
@@ -87,15 +87,15 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Compute real metrics from live arrays
+
   const aiScannersCount = events.filter((e) => e.payload?.toLowerCase().includes('nmap') || e.payload?.toLowerCase().includes('bot')).length;
   const malwareDropsCount = events.filter((e) => e.kind === 'malware_drop' || e.payload?.toLowerCase().includes('wget') || e.payload?.toLowerCase().includes('curl')).length;
   const watermarkHitsCount = lures.reduce((acc, curr) => acc + (curr.beaconHitsCount || 0), 0);
-  const totalTimeWastedMin = Math.round(events.length * 3.4); // Average session interaction time
+  const totalTimeWastedMin = Math.round(events.length * 3.4);
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Executive Summary Hero Banner */}
+      {}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           <div className="lg:col-span-8 space-y-4">
@@ -124,7 +124,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Inline Quick Metrics */}
+            {}
             <div className="grid grid-cols-3 gap-4 pt-3 border-t border-slate-100 max-w-md">
               <div>
                 <span className="text-[11px] text-slate-400 font-medium">Active Decoys</span>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right Activity Box */}
+          {}
           <div className="lg:col-span-4 bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-sm relative">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest font-mono">
@@ -175,7 +175,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 4-Column Grid Metric Cards */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="hover:shadow-md transition-shadow">
           <div className="flex items-start justify-between">
@@ -230,7 +230,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Deception Effectiveness Scoreboard & Comparative Benchmark */}
+      {}
       {deceptionScore && (
         <Card className="p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -253,7 +253,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Benchmark Comparison Table */}
+          {}
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-sans border-collapse">
               <thead>
@@ -277,7 +277,7 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {/* 2-Column Section: Quick Actions & Fleet Health */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Card className="lg:col-span-6 flex flex-col justify-between">
           <div>
@@ -329,7 +329,7 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Fleet Health Progress Bars */}
+        {}
         <Card className="lg:col-span-6">
           <CardHeader>
             <CardTitle>Deception Fleet Health</CardTitle>
@@ -372,7 +372,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Main Grid: Telemetry Events & Interactive Shell */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-6 space-y-4">
           <CardHeader>

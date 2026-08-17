@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Mobile Drawer Backdrop Overlay */}
+      {}
       {mobileOpen && (
         <div
           onClick={onCloseMobile}
@@ -102,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             : 'fixed lg:relative -translate-x-full lg:translate-x-0 inset-y-0 left-0'
         )}
       >
-        {/* Floating Desktop Collapse Toggle (EAK Digital Style) */}
+        {}
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
@@ -113,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        {/* Sidebar Header */}
+        {}
         <div className="h-16 px-4 border-b border-slate-200/80 flex items-center justify-between bg-white flex-shrink-0">
           <div className="flex items-center gap-3 overflow-hidden">
             <img
@@ -136,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-          {/* Mobile Close Button */}
+          {}
           {mobileOpen && (
             <button
               onClick={onCloseMobile}
@@ -147,7 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Navigation Sections */}
+        {}
         <nav className="flex-1 p-3 space-y-6 overflow-y-auto overflow-x-hidden">
           {navSections.map((section) => (
             <div key={section.title} className="space-y-1">
@@ -186,7 +186,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </nav>
 
-        {/* Footer Actions */}
+        {}
         <div className="p-3 border-t border-slate-200/80 bg-white">
           {(!collapsed || mobileOpen) ? (
             <button

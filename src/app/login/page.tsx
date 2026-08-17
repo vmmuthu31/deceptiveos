@@ -45,7 +45,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center items-center p-4 font-sans antialiased">
       <div className="w-full max-w-md space-y-6">
-        {/* Brand Header */}
+        {}
         <div className="text-center space-y-3">
           <img
             src="/logo.png"
@@ -58,7 +58,7 @@ export default function LoginPage() {
           <p className="text-xs text-slate-500 font-mono tracking-tight">ADVERSARIAL AI DEFENSE ENGINE</p>
         </div>
 
-        {/* Login Card */}
+        {}
         <Card className="shadow-lg border-slate-200/80 p-6 sm:p-8">
           <div className="mb-6">
             <h2 className="text-lg font-bold text-slate-900">Sign In to Dashboard</h2>

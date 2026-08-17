@@ -74,7 +74,7 @@ function matchMitreTechniquesAndAttribution(commands: string[]): { techniques: s
     techniques.push('T1059.004 (Unix Shell Command Execution)');
   }
 
-  // Classification heuristic
+
   if (combined.includes('python') || combined.includes('import') || commands.some((c) => c.length > 120)) {
     return { techniques, classification: 'AIAgent', confidence: 0.95 };
   }

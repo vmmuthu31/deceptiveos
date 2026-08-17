@@ -18,7 +18,7 @@ export default function AlertsPage() {
           setProfiles(data.profiles || []);
         }
       } catch {
-        // fallback
+
       }
     }
     loadProfiles();
