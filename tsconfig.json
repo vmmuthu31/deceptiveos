@@ -30,7 +30,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "starknet-privacy": ["./node_modules/starknet-privacy/sdk/dist/index.d.ts"],
+      "starknet-privacy/testing": ["./node_modules/starknet-privacy/sdk/dist/testing/index.d.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
