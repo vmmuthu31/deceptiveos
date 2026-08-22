@@ -9,7 +9,6 @@ export interface Strk20Config {
   indexerUrl: string;
   poolAddress: string;
   chainId: string;
-  devMode: boolean;
 }
 
 let cachedConfig: Strk20Config | null = null;
@@ -39,7 +38,6 @@ export function getStrk20Config(): Strk20Config {
     indexerUrl: env.INDEXER_URL,
     poolAddress: env.POOL_ADDRESS,
     chainId: env.CHAIN_ID,
-    devMode: env.DEV_MODE,
   };
 
   return cachedConfig;

@@ -1,6 +1,5 @@
 import { Account, RpcProvider, constants } from 'starknet';
 import { createPrivateTransfers, type PrivateTransfersInterface } from 'starknet-privacy';
-import { CallMockProofProvider, ContractDiscoveryProvider } from 'starknet-privacy/testing';
 import { getStrk20Config } from '@/server/config/strk20';
 import { PROVING_BLOCK_OFFSET } from '@/server/config/constants';
 
@@ -42,31 +41,18 @@ export function getPrivateTransfers(): PrivateTransfersInterface {
     ? constants.StarknetChainId.SN_MAIN
     : constants.StarknetChainId.SN_SEPOLIA;
 
-  if (config.devMode) {
-    const provider = getStarknetProvider();
-    cachedTransfers = createPrivateTransfers({
-      account,
-      viewingKeyProvider: { getViewingKey: async () => config.viewingKey },
-      provingProvider: new CallMockProofProvider(provider, chainId),
-      discoveryProvider: new ContractDiscoveryProvider(
-        { getAddress: async () => config.poolAddress } as never,
-      ),
-      poolContractAddress: config.poolAddress,
-    });
-  } else {
-    cachedTransfers = createPrivateTransfers({
-      account,
-      viewingKeyProvider: { getViewingKey: async () => config.viewingKey },
-      provingProvider: {
-        url: config.provingServiceUrl,
-        chainId,
-      },
-      discoveryProvider: {
-        url: config.indexerUrl,
-      },
-      poolContractAddress: config.poolAddress,
-    });
-  }
+  cachedTransfers = createPrivateTransfers({
+    account,
+    viewingKeyProvider: { getViewingKey: async () => config.viewingKey },
+    provingProvider: {
+      url: config.provingServiceUrl,
+      chainId,
+    },
+    discoveryProvider: {
+      url: config.indexerUrl,
+    },
+    poolContractAddress: config.poolAddress,
+  });
 
   return cachedTransfers;
 }

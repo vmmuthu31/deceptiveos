@@ -44,3 +44,5 @@ coverage/
 
 # Temp
 tmp/
+.agents/skills/strk20-privacy-integration/
+skills-lock.json

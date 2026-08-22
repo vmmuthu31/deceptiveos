@@ -22,11 +22,6 @@ vi.mock('starknet-privacy', () => ({
   })),
 }));
 
-vi.mock('starknet-privacy/testing', () => ({
-  CallMockProofProvider: vi.fn(),
-  ContractDiscoveryProvider: vi.fn(),
-}));
-
 describe('Starknet Client', () => {
   const originalEnv = process.env;
 
@@ -40,7 +35,6 @@ describe('Starknet Client', () => {
     process.env.INDEXER_URL = 'https://indexer.example.com';
     process.env.POOL_ADDRESS = '0x0123456789abcdef';
     process.env.CHAIN_ID = '0x534e5f4d41494e';
-    process.env.DEV_MODE = 'true';
     resetStarknetClient();
   });
 
