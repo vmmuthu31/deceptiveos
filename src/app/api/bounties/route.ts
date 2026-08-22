@@ -19,8 +19,8 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const { bountyId, intelligenceReport } = await req.json();
-    const updated = await claimGhostBounty(bountyId, intelligenceReport);
+    const { bountyId, intelligenceReport, researcherAddress } = await req.json();
+    const updated = await claimGhostBounty(bountyId, intelligenceReport, researcherAddress);
     if (!updated) {
       return NextResponse.json({ success: false, error: 'Bounty not found' }, { status: 404 });
     }

@@ -1,6 +1,7 @@
 import { appendAuditBlock, readDb, writeDb } from '@/server/db/database';
 import { GhostBountyItem } from '@/shared/types';
-import crypto from 'crypto';
+import { privateTransfer } from '@/server/services/starknet/transfer';
+import { getPrivateTreasuryState } from './treasury.service';
 
 export async function getAllGhostBounties(): Promise<GhostBountyItem[]> {
   const db = readDb();
@@ -18,10 +19,21 @@ export async function fundGhostBounty(data: {
   rewardStrk: number;
   mitreTtps?: string[];
 }): Promise<GhostBountyItem> {
+  const treasury = await getPrivateTreasuryState();
+
+  if (data.rewardStrk > treasury.availableShieldedStrk) {
+    throw new Error(
+      `Insufficient shielded balance: need ${data.rewardStrk} STRK, have ${treasury.availableShieldedStrk} STRK`,
+    );
+  }
+
+  const result = await privateTransfer(
+    treasury.publicWalletAddress,
+    BigInt(data.rewardStrk),
+  );
+
   const db = readDb();
   if (!db.ghostBounties) db.ghostBounties = [];
-
-  const txHash = `0x${crypto.randomBytes(16).toString('hex')}`;
 
   const newBounty: GhostBountyItem = {
     id: `gb-${Date.now().toString(36)}`,
@@ -34,38 +46,58 @@ export async function fundGhostBounty(data: {
     matchedCampaignsCount: 1,
     mitreTtps: data.mitreTtps || ['T1059 (Command Scripting)', 'T1082 (System Discovery)'],
     createdAt: new Date().toISOString(),
-    fundedTxHash: txHash,
+    fundedTxHash: result.txHash,
   };
 
   db.ghostBounties.unshift(newBounty);
+
+  treasury.committedBountyStrk += data.rewardStrk;
+  treasury.availableShieldedStrk -= data.rewardStrk;
   writeDb(db);
 
   appendAuditBlock('GHOSTBOUNTY_FUNDED', {
     id: newBounty.id,
     dna: newBounty.dnaFingerprint,
     rewardStrk: newBounty.rewardStrk,
-    txHash,
+    txHash: result.txHash,
   });
 
   return newBounty;
 }
 
-export async function claimGhostBounty(bountyId: string, intelligenceReport: string): Promise<GhostBountyItem | null> {
+export async function claimGhostBounty(
+  bountyId: string,
+  intelligenceReport: string,
+  researcherAddress: string,
+): Promise<GhostBountyItem | null> {
+  if (!researcherAddress.match(/^0x[0-9a-fA-F]+$/)) {
+    throw new Error('Invalid researcher address');
+  }
+
   const db = readDb();
   if (!db.ghostBounties) return null;
 
   const bounty = db.ghostBounties.find((b) => b.id === bountyId);
   if (!bounty) return null;
 
-  const claimantHash = `0x${crypto.createHash('sha256').update(intelligenceReport + Date.now().toString()).digest('hex').substring(0, 16)}`;
+  if (bounty.shieldedStatus !== 'SHIELDED') {
+    throw new Error(`Bounty ${bountyId} is not in SHIELDED status`);
+  }
+
+  const result = await privateTransfer(researcherAddress, BigInt(bounty.rewardStrk));
+
+  const treasury = await getPrivateTreasuryState();
+  treasury.committedBountyStrk -= bounty.rewardStrk;
 
   bounty.shieldedStatus = 'CLAIMED';
-  bounty.claimantHash = claimantHash;
+  bounty.claimantHash = result.txHash;
   writeDb(db);
 
   appendAuditBlock('GHOSTBOUNTY_CLAIMED', {
     bountyId,
-    claimantHash,
+    researcherAddress,
+    rewardStrk: bounty.rewardStrk,
+    txHash: result.txHash,
     intelligenceSnippet: intelligenceReport.substring(0, 50),
   });
 
