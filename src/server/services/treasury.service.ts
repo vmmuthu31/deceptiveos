@@ -3,12 +3,14 @@ import { PrivateTreasuryState, TreasuryTx } from '@/shared/types';
 import { shieldStrk } from '@/server/services/starknet/shield';
 import { privateTransfer } from '@/server/services/starknet/transfer';
 import { unshieldStrk } from '@/server/services/starknet/unshield';
+import { getStrk20Config } from '@/server/config/strk20';
 
 export async function getPrivateTreasuryState(): Promise<PrivateTreasuryState> {
   const db = readDb();
   if (!db.treasury) {
+    const config = getStrk20Config();
     db.treasury = {
-      publicWalletAddress: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
+      publicWalletAddress: config.accountAddress,
       publicBalanceStrk: 10000,
       shieldedBalanceStrk: 0,
       committedBountyStrk: 0,
