@@ -2,6 +2,7 @@ import { appendAuditBlock, readDb, writeDb } from '@/server/db/database';
 import { BeaconEvent, LureDocument, WatermarkToken } from '@/shared/types';
 import { generateWatermarkSignature } from '@/shared/utils/formatters';
 import { generateSemanticLureDocument } from './ai.service';
+import crypto from 'crypto';
 
 export async function getAllLures(): Promise<LureDocument[]> {
   const db = readDb();
@@ -25,7 +26,7 @@ export async function createLureDocument(data: {
 }): Promise<{ lure: LureDocument; documentContent: string }> {
   const db = readDb();
 
-  const tokenStr = `wt_${Math.random().toString(36).substring(2, 14)}`;
+  const tokenStr = `wt_${crypto.randomBytes(16).toString('hex')}`;
   const watermark: WatermarkToken = {
     token: tokenStr,
     embeddedAt: new Date().toISOString(),

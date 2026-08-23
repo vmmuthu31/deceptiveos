@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { Pool } from 'pg';
+import crypto from 'crypto';
 
 export interface UserProfile {
   id: string;
@@ -167,7 +168,7 @@ export async function registerPendingUserAccount(data: {
   }
 
   const passwordHash = await hashPassword(data.password);
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpCode = crypto.randomInt(100000, 999999).toString();
   const otpExpiresAt = Date.now() + 1000 * 60 * 10;
   const userId = existing?.id || `usr_${Date.now().toString(36)}`;
   const organization = data.organization || 'SecOps Team';
@@ -268,7 +269,7 @@ export async function resendUserOtp(email: string): Promise<string> {
     throw new Error('Account is already verified. You can log in directly.');
   }
 
-  const newOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const newOtpCode = crypto.randomInt(100000, 999999).toString();
   const newExpiresAt = Date.now() + 1000 * 60 * 10;
 
   if (dbPool) {
@@ -341,7 +342,7 @@ export async function createPasswordResetToken(email: string): Promise<string> {
     throw new Error('No user account found with that email address.');
   }
 
-  const token = `rst_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
+  const token = `rst_${crypto.randomBytes(32).toString('hex')}`;
   const expiresAt = Date.now() + 1000 * 60 * 60;
 
   if (dbPool) {
