@@ -14,12 +14,27 @@ export async function checkOpenCodeHealth(): Promise<{ available: boolean; model
   const configuredModel = process.env.OPENCODE_MODEL || 'mimo-v2.5-free';
 
   if (openCodeKey && openCodeKey.trim().length > 0) {
-    return {
-      available: true,
-      model: `opencode/${configuredModel}`,
-      provider: 'OpenCode API Zen (Cloud)',
-      latencyMs: 85,
-    };
+    const start = Date.now();
+    try {
+      const res = await fetch('https://opencode.ai/zen/v1/models', {
+        headers: { 'Authorization': `Bearer ${openCodeKey}` },
+        signal: AbortSignal.timeout(5000),
+      });
+      const latencyMs = Date.now() - start;
+      return {
+        available: res.ok,
+        model: `opencode/${configuredModel}`,
+        provider: 'OpenCode API Zen (Cloud)',
+        latencyMs,
+      };
+    } catch {
+      return {
+        available: false,
+        model: `opencode/${configuredModel}`,
+        provider: 'OpenCode API Zen (Cloud)',
+        latencyMs: Date.now() - start,
+      };
+    }
   }
 
   return {
@@ -102,28 +117,65 @@ Respond ONLY with the raw Linux shell output for the given command. No markdown,
 }
 
 export async function classifyAttackerSession(commands: string[]): Promise<{ classification: AttackerClass; confidence: number; summary: string }> {
-  const commandStr = commands.join('; ');
-
-  if (commandStr.includes('nmap') || commandStr.includes('sqlmap') || commands.length < 3) {
+  if (commands.length === 0) {
     return {
-      classification: 'ScriptKiddie',
-      confidence: 0.88,
-      summary: 'Automated vulnerability scanner or basic script execution pattern detected.',
+      classification: 'HumanOperator',
+      confidence: 0.5,
+      summary: 'No commands observed.',
     };
   }
 
-  if (commandStr.includes('python') || commandStr.includes('eval') || commandStr.includes('import') || commands.some((c) => c.length > 120)) {
+  const avgCmdLength = commands.reduce((sum, c) => sum + c.length, 0) / commands.length;
+  const hasLongCommands = commands.some((c) => c.length > 120);
+  const hasAutomatedTools = commands.some((c) => /nmap|sqlmap|hydra|masscan|zmap/.test(c.toLowerCase()));
+  const hasScripting = commands.some((c) => /python|perl|ruby|eval|import/.test(c.toLowerCase()));
+  const uniqueCommands = new Set(commands.map((c) => c.split(' ')[0].toLowerCase())).size;
+  const commandVariety = uniqueCommands / commands.length;
+
+  let score = 0;
+  const signals: string[] = [];
+
+  if (hasAutomatedTools) {
+    score += 0.3;
+    signals.push('automated scanning tools');
+  }
+  if (hasScripting) {
+    score += 0.2;
+    signals.push('scripting language usage');
+  }
+  if (hasLongCommands) {
+    score += 0.15;
+    signals.push('long structured commands');
+  }
+  if (avgCmdLength > 60) {
+    score += 0.1;
+    signals.push('above-average command complexity');
+  }
+  if (commandVariety < 0.3 && commands.length > 3) {
+    score += 0.15;
+    signals.push('low command variety (repetitive)');
+  }
+
+  if (score >= 0.5) {
     return {
       classification: 'AIAgent',
-      confidence: 0.94,
-      summary: 'Rapid structured exploration, synthetic tool invocation, and low-latency decision loop characteristic of an autonomous AI agent.',
+      confidence: Math.min(0.98, 0.7 + score * 0.3),
+      summary: `Autonomous agent indicators: ${signals.join(', ')}.`,
+    };
+  }
+
+  if (score >= 0.25 || commands.length <= 2) {
+    return {
+      classification: 'ScriptKiddie',
+      confidence: Math.min(0.95, 0.6 + score * 0.4),
+      summary: `Basic tool usage detected: ${signals.length > 0 ? signals.join(', ') : 'limited command set'}.`,
     };
   }
 
   return {
     classification: 'HumanOperator',
-    confidence: 0.79,
-    summary: 'Manual command pauses, interactive directory navigation, and organic typo correction observed.',
+    confidence: Math.max(0.5, 0.85 - score * 0.3),
+    summary: 'Interactive manual session with varied commands.',
   };
 }
 
