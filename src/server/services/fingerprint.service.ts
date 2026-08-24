@@ -120,6 +120,18 @@ export async function addSessionEvent(eventData: Omit<SessionEvent, 'id' | 'time
   let profile = db.attackerProfiles.find((p) => p.ip === eventData.attackerIp);
 
   if (!profile) {
+    const timingJitter = eventData.commands.length > 1
+      ? eventData.commands.slice(1).reduce((sum, cmd, i) => {
+          const prev = eventData.commands[i];
+          const gap = Math.abs(cmd.executionDelayMs - prev.executionDelayMs);
+          return sum + gap;
+        }, 0) / (eventData.commands.length - 1)
+      : eventData.commands[0]?.executionDelayMs || 0;
+
+    const commandVelocity = eventData.commands.length > 0
+      ? Number((eventData.commands.length / Math.max(1, eventData.commands.length * 0.5)).toFixed(1))
+      : 0;
+
     profile = {
       id: `atk-profile-${Date.now().toString(36)}`,
       ip: eventData.attackerIp,
@@ -129,15 +141,15 @@ export async function addSessionEvent(eventData: Omit<SessionEvent, 'id' | 'time
       lastSeenAt: new Date().toISOString(),
       totalSessions: 1,
       totalCommands: eventData.commands.length,
-      timingJitterAvgMs: classification === 'AIAgent' ? 110 : 1850,
+      timingJitterAvgMs: Math.round(timingJitter),
       mitreTechniques: techniques,
       threatLevel: classification === 'AIAgent' ? 'Critical' : 'High',
       behavioralDNA: {
-        commandVelocityPerMin: Number((eventData.commands.length * 6).toFixed(1)),
+        commandVelocityPerMin: commandVelocity,
         typoFrequencyScore: typoRatio,
         toolSignature: classification === 'AIAgent' ? 'Autonomous AI Red Team Agent' : 'Interactive Shell Operator',
-        timezoneEstimate: 'UTC+02:00',
-        botProbability: classification === 'AIAgent' ? 0.98 : 0.25,
+        timezoneEstimate: 'Unknown',
+        botProbability: classification === 'AIAgent' ? 0.95 : 0.20,
       },
     };
     db.attackerProfiles.unshift(profile);
