@@ -130,7 +130,7 @@ export async function sendBeaconCallbackEmail(beacon: BeaconEvent): Promise<bool
 
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
   const transporter = createTransporter();
-  const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
   try {
     await transporter.sendMail({

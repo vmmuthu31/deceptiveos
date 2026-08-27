@@ -1,6 +1,7 @@
 import { appendAuditBlock, readDb, writeDb } from '@/server/db/database';
 import { HoneypotProfile, TwinSyncMetadata } from '@/shared/types';
 import { execSync } from 'child_process';
+import crypto from 'crypto';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -52,23 +53,24 @@ export async function createHoneypot(data: {
   twinSyncEnabled: boolean;
 }): Promise<HoneypotProfile> {
   const db = readDb();
-  const containerId = `doc-${Math.random().toString(36).substring(2, 10)}`;
-
+  const containerId = crypto.randomBytes(8).toString('hex');
+  let containerStarted = false;
 
   try {
     execSync(`docker run -d --name cipher-${containerId} -p ${data.port}:${data.port} alpine sleep infinity`, {
       timeout: 4000,
       stdio: 'ignore',
     });
+    containerStarted = true;
   } catch {
-
+    containerStarted = false;
   }
 
   const newHp: HoneypotProfile = {
     id: `hp-${data.type.toLowerCase()}-${Date.now().toString(36)}`,
     name: data.name,
     type: data.type,
-    status: 'active',
+    status: containerStarted ? 'active' : 'error',
     port: data.port,
     ip: '127.0.0.1',
     containerId,
@@ -81,7 +83,6 @@ export async function createHoneypot(data: {
 
   db.honeypots.push(newHp);
   writeDb(db);
-
 
   appendAuditBlock('HONEYPOT_DECOY_CREATED', { id: newHp.id, type: newHp.type, port: newHp.port });
 
@@ -146,7 +147,7 @@ export async function getDigitalTwinMetadata(): Promise<TwinSyncMetadata> {
     architecture,
     activePortRange: `2222-2225 (Ifaces: ${activeIfaces.substring(0, 30)})`,
     directoryNaming: Array.from(new Set(scannedDirs)).slice(0, 8),
-    filePatterns: ['*.env', '*.config.json', 'package.json', 'tsconfig.json', 'salary_review.csv'],
+    filePatterns: ['*.env', '*.config.json', 'package.json', 'tsconfig.json'],
     lastSyncedAt: new Date().toISOString(),
     syncApproved: true,
   };
