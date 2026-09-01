@@ -5,10 +5,11 @@
   "private": true,
   "main": "electron/main.js",
   "scripts": {
-    "dev": "next dev",
+    "start": "electron .",
+    "app": "electron .",
     "electron": "electron .",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
     "lint": "tsc --noEmit && eslint .",
     "test": "vitest run",
     "test:watch": "vitest",

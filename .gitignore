@@ -10,6 +10,8 @@ electron/dist/
 electron/node_modules/
 frontend/node_modules/
 
+__pycache__/
+
 # Environment
 .env
 .env.local

@@ -1,0 +1,5 @@
+# CipherNest Python Deception Core — dependencies
+# All stdlib except paramiko (optional, for real SSH handshake upgrade)
+# Install with: pip3 install -r requirements.txt
+paramiko>=3.4.0     # Optional: upgrade TCP honeypot to real SSH handshake
+requests>=2.32.0    # Optional: richer HTTP calls instead of urllib
