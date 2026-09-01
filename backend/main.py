@@ -1,42 +1,49 @@
 """
 CipherNest Python Adversarial Deception Engine — Master Daemon
-Orchestrates live SSH Honeypots, Steganography Beacon Receivers, and Forensic Telemetry.
+Orchestrates FastAPI server (port 8000), SSH Honeypots (port 2222),
+and Steganography Beacon Receivers (port 8001).
 """
 
 import asyncio
 import http.server
 import json
 import os
-import signal
 import socketserver
 import sys
 import threading
 import time
 from datetime import datetime
 
+# Ensure backend/ is in sys.path so `api` package is importable
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from ssh_honeypot import start_ssh_honeypot
 from stego_engine import decode_zw_to_token
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "ciphernest-store.json")
-BEACON_PORT = int(os.environ.get("BEACON_PORT", 8001))
+BEACON_PORT  = int(os.environ.get("BEACON_PORT",  8001))
 HONEYPOT_PORT = int(os.environ.get("HONEYPOT_PORT", 2222))
+API_PORT     = int(os.environ.get("API_PORT",     8000))
+
+
+# ─── Beacon HTTP receiver ─────────────────────────────────────────────────────
 
 class BeaconHttpHandler(http.server.BaseHTTPRequestHandler):
     """Real HTTP callback beacon receiver for exfiltrated steganographic lure documents."""
-    
+
     def do_GET(self):
         token = self.path.split("token=")[-1] if "token=" in self.path else "unknown"
         client_ip = self.client_address[0]
         user_agent = self.headers.get("User-Agent", "Unknown Document Viewer")
-        
+
         print(f"[Beacon Alert] Lure Document opened from {client_ip} (Token: {token})")
-        
+
         try:
             db = {"beacons": []}
             if os.path.exists(DB_PATH):
                 with open(DB_PATH, "r", encoding="utf-8") as f:
                     db = json.load(f)
-            
+
             beacon_event = {
                 "id": f"beacon-{int(time.time()*1000)}",
                 "lureId": "lure-live-01",
@@ -45,25 +52,30 @@ class BeaconHttpHandler(http.server.BaseHTTPRequestHandler):
                 "sourceIp": client_ip,
                 "location": "External Host / Exfiltration Node",
                 "userAgent": user_agent,
-                "timestamp": datetime.utcnow().isoformat() + "Z"
+                "timestamp": datetime.utcnow().isoformat() + "Z",
             }
             db.setdefault("beacons", []).insert(0, beacon_event)
             with open(DB_PATH, "w", encoding="utf-8") as f:
                 json.dump(db, f, indent=2)
         except Exception as e:
             print(f"[Beacon Log Error]: {e}")
-            
-        # Return a 1x1 transparent tracking pixel
+
+        # Return a 1×1 transparent tracking pixel
         self.send_response(200)
         self.send_header("Content-Type", "image/png")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
-        # Minimal 1x1 transparent PNG
-        pixel = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
+        pixel = (
+            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01'
+            b'\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00'
+            b'\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4'
+            b'\x00\x00\x00\x00IEND\xaeB`\x82'
+        )
         self.wfile.write(pixel)
-        
+
     def log_message(self, format, *args):
-        pass
+        pass  # suppress default access logs
+
 
 def run_beacon_server():
     """Run beacon callback receiver on background thread."""
@@ -74,23 +86,52 @@ def run_beacon_server():
     except Exception as e:
         print(f"[Beacon Server Notice]: {e}")
 
+
+# ─── FastAPI / uvicorn ────────────────────────────────────────────────────────
+
+def run_fastapi():
+    """Run FastAPI server via uvicorn on API_PORT (default 8000)."""
+    try:
+        import uvicorn
+        print(f"[*] CipherNest FastAPI server starting on port {API_PORT}")
+        uvicorn.run(
+            "api.app:app",
+            host="0.0.0.0",
+            port=API_PORT,
+            log_level="warning",
+            access_log=False,
+        )
+    except ImportError:
+        print("[!] uvicorn not installed — FastAPI server skipped. Run: pip3 install -r backend/requirements.txt")
+    except Exception as e:
+        print(f"[FastAPI Error]: {e}")
+
+
+# ─── Entry point ──────────────────────────────────────────────────────────────
+
 async def main():
     if "--test" in sys.argv:
         print("[+] CipherNest Python Deception Core Health Check: OK")
         sys.exit(0)
-        
+
     print("=================================================================")
-    print("  CipherNest Adversarial AI Defense Engine — Real Python Core    ")
-    print(f"  Live SSH Honeypot:    0.0.0.0:{HONEYPOT_PORT}")
-    print(f"  Lure Beacon Receiver: 0.0.0.0:{BEACON_PORT}")
+    print("  CipherNest Adversarial AI Defense Engine — Python Core         ")
+    print(f"  FastAPI REST Server:   0.0.0.0:{API_PORT}")
+    print(f"  Live SSH Honeypot:     0.0.0.0:{HONEYPOT_PORT}")
+    print(f"  Lure Beacon Receiver:  0.0.0.0:{BEACON_PORT}")
     print("=================================================================")
-    
-    # Start beacon receiver thread
-    t = threading.Thread(target=run_beacon_server, daemon=True)
-    t.start()
-    
-    # Start live SSH Honeypot
+
+    # Start FastAPI (uvicorn) on a daemon thread
+    t_api = threading.Thread(target=run_fastapi, daemon=True)
+    t_api.start()
+
+    # Start beacon receiver on a daemon thread
+    t_beacon = threading.Thread(target=run_beacon_server, daemon=True)
+    t_beacon.start()
+
+    # Run SSH honeypot (asyncio — blocks until cancelled)
     await start_ssh_honeypot(port=HONEYPOT_PORT)
+
 
 if __name__ == "__main__":
     try:
