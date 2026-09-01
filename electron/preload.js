@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * CipherNest Electron Preload — Secure IPC Bridge
  * Exposes safe, scoped APIs to the Next.js renderer via contextBridge.

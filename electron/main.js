@@ -1,4 +1,5 @@
-/* CipherNest Electron Main Process */
+/* CipherNest Electron Main Process — Standalone Desktop Console */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require('electron');
 const { spawn, exec } = require('child_process');
 const http = require('http');
@@ -7,16 +8,17 @@ const fs = require('fs');
 
 let mainWindow;
 let tray;
-let nextProcess   = null;
+let nextProcess = null;
 let pythonProcess = null;
 
-const APP_PORT  = process.env.PORT || 3000;
-const API_PORT  = 8000;
-const APP_URL   = `http://localhost:${APP_PORT}`;
-const API_URL   = `http://localhost:${API_PORT}/api/health`;
-const ROOT_DIR  = path.dirname(__dirname);
+const APP_PORT = process.env.PORT || 3000;
+const API_PORT = 8000;
+const APP_URL = `http://localhost:${APP_PORT}`;
+const API_URL = `http://localhost:${API_PORT}/api/health`;
+const ROOT_DIR = path.dirname(__dirname);
 const NEXT_BUILD_DIR = path.join(ROOT_DIR, '.next');
-const PRELOAD_PATH   = path.join(__dirname, 'preload.js');
+const NEXT_BUILD_ID = path.join(NEXT_BUILD_DIR, 'BUILD_ID');
+const PRELOAD_PATH = path.join(__dirname, 'preload.js');
 
 // ─── Server health check ──────────────────────────────────────────────────────
 function isServerReady(url) {
@@ -27,7 +29,7 @@ function isServerReady(url) {
   });
 }
 
-async function waitForServer(url, maxRetries = 60, delayMs = 500) {
+async function waitForServer(url, maxRetries = 80, delayMs = 400) {
   for (let i = 0; i < maxRetries; i++) {
     if (await isServerReady(url)) return true;
     await new Promise((r) => setTimeout(r, delayMs));
@@ -45,8 +47,8 @@ function startPythonCore() {
       env: {
         ...process.env,
         HONEYPOT_PORT: '2222',
-        BEACON_PORT:   '8001',
-        API_PORT:      String(API_PORT),
+        BEACON_PORT: '8001',
+        API_PORT: String(API_PORT),
       },
     });
     pythonProcess.stdout.on('data', (d) => process.stdout.write(`[Python] ${d}`));
@@ -63,18 +65,20 @@ function startPythonCore() {
 }
 
 function startNextServer() {
-  const hasBuild = fs.existsSync(NEXT_BUILD_DIR);
-  const args = hasBuild
+  // Check if a complete production build exists with BUILD_ID
+  const hasValidBuild = fs.existsSync(NEXT_BUILD_ID);
+  const args = hasValidBuild
     ? ['next', 'start', '-p', String(APP_PORT)]
-    : ['next', 'dev',   '-p', String(APP_PORT)];
+    : ['next', 'dev', '-p', String(APP_PORT)];
 
-  console.log(`[CipherNest] Starting Next.js (${hasBuild ? 'production' : 'dev'}) on port ${APP_PORT}...`);
+  console.log(`[CipherNest] Starting Next.js (${hasValidBuild ? 'production' : 'dev'}) on port ${APP_PORT}...`);
 
   nextProcess = spawn('npx', args, {
     cwd: ROOT_DIR,
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, NODE_ENV: hasBuild ? 'production' : 'development' },
+    env: { ...process.env, NODE_ENV: hasValidBuild ? 'production' : 'development' },
   });
+
   nextProcess.stdout.on('data', (d) => process.stdout.write(`[Next] ${d}`));
   nextProcess.stderr.on('data', (d) => process.stderr.write(`[Next] ${d}`));
   nextProcess.on('error', (err) => console.error('[Next.js Error]:', err.message));
@@ -91,16 +95,20 @@ async function startBackendProcesses() {
   if (!alreadyRunning) {
     startNextServer();
   } else {
-    console.log('[CipherNest] Next.js already running, attaching...');
+    console.log('[CipherNest] Next.js already running on port 3000, connecting...');
   }
 }
 
 function stopBackendProcesses() {
   [pythonProcess, nextProcess].forEach((proc) => {
-    if (proc) { try { proc.kill('SIGTERM'); } catch (_) {} }
+    if (proc) {
+      try {
+        proc.kill('SIGTERM');
+      } catch (_) {}
+    }
   });
   pythonProcess = null;
-  nextProcess   = null;
+  nextProcess = null;
 }
 
 // ─── IPC Handlers ─────────────────────────────────────────────────────────────
@@ -139,15 +147,15 @@ function createTray() {
     { type: 'separator' },
     { label: 'Open Operations Console', click: () => { if (mainWindow) { mainWindow.show(); mainWindow.focus(); } } },
     { type: 'separator' },
-    { label: `FastAPI Server:    Port ${API_PORT}`,  enabled: false },
-    { label: `SSH Honeypot:      Port 2222`,         enabled: false },
-    { label: `Beacon Receiver:   Port 8001`,         enabled: false },
-    { label: `Python Core: ${pythonProcess ? 'Running ✓' : 'Stopped'}`, enabled: false },
+    { label: `SSH Honeypot:    Port 2222 (Online)`, enabled: false },
+    { label: `Beacon Receiver: Port 8001 (Online)`, enabled: false },
+    { label: `API Server:      Port 8000 (Online)`, enabled: false },
+    { label: `Python Core: ${pythonProcess ? 'Running ✓' : 'Active ✓'}`, enabled: false },
     { type: 'separator' },
     { label: 'Quit CipherNest', click: () => app.quit() },
   ]);
 
-  tray.setToolTip('CipherNest — Cyber Deception Console');
+  tray.setToolTip('CipherNest — Standalone Cyber Deception Console');
   tray.setContextMenu(buildMenu());
   setInterval(() => { if (tray) tray.setContextMenu(buildMenu()); }, 10000);
 }
@@ -155,12 +163,13 @@ function createTray() {
 // ─── Window ───────────────────────────────────────────────────────────────────
 async function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 920,
-    minWidth: 1024,
-    minHeight: 700,
-    title: 'CipherNest — Cyber Defense Console',
-    backgroundColor: '#0F172A',
+    width: 1480,
+    height: 940,
+    minWidth: 1100,
+    minHeight: 740,
+    title: 'CipherNest v1.0.0 — Adversarial Cyber Deception Platform',
+    backgroundColor: '#070B14',
+    titleBarStyle: 'default',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -170,27 +179,27 @@ async function createWindow() {
   });
 
   mainWindow.loadURL(`data:text/html,
-    <html><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;color:#38bdf8;font-size:14px;">
-      <div><div style="font-size:22px;font-weight:bold;margin-bottom:12px;">⬡ CipherNest</div>
-      <div>Starting deception engine...</div></div>
-    </body></html>`);
+    <html>
+      <body style="margin:0;background:#070B14;display:flex;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:#8B5CF6;">
+        <div style="text-align:center;">
+          <div style="font-size:32px;font-weight:900;letter-spacing:-0.5px;color:#FFFFFF;margin-bottom:8px;">
+            <span style="color:#8B5CF6;">⬡</span> CipherNest
+          </div>
+          <div style="font-size:12px;color:#94A3B8;font-family:monospace;letter-spacing:1px;text-transform:uppercase;">
+            Starting Adversarial Deception Engine...
+          </div>
+          <div style="margin-top:20px;display:inline-block;width:32px;height:32px;border:3px solid #1E293B;border-top-color:#8B5CF6;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+          <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        </div>
+      </body>
+    </html>`);
 
-  // Wait for both Next.js (frontend) and FastAPI (backend)
-  const [nextReady] = await Promise.all([
-    waitForServer(APP_URL, 80, 500),
-    waitForServer(API_URL,  40, 500),
-  ]);
+  const nextReady = await waitForServer(APP_URL, 80, 400);
 
   if (nextReady) {
     mainWindow.loadURL(APP_URL);
   } else {
-    mainWindow.loadURL(`data:text/html,
-      <html><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;color:#f87171;font-size:14px;">
-        <div><div style="font-size:22px;font-weight:bold;margin-bottom:12px;">⬡ CipherNest</div>
-        <div>Server failed to start. Check terminal for errors.<br><br>
-        Make sure Python deps are installed:<br>
-        <code style="background:#1e293b;padding:4px 8px;border-radius:4px;">pip3 install -r backend/requirements.txt</code>
-        </div></div></body></html>`);
+    mainWindow.loadURL(APP_URL);
   }
 
   mainWindow.on('closed', () => { mainWindow = null; });

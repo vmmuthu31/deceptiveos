@@ -1,8 +1,7 @@
 'use client';
 
-import { Button } from '@/client/components/ui/Button';
 import React, { useEffect, useState } from 'react';
-import { RiAddLine, RiBellLine, RiCpuLine, RiGlobalLine, RiMenuLine, RiSearchLine, RiUser3Line } from 'react-icons/ri';
+import { RiBellLine, RiMenuLine, RiUser3Line } from 'react-icons/ri';
 
 interface TopbarProps {
   collapsed?: boolean;
@@ -13,116 +12,93 @@ interface TopbarProps {
 export const Topbar: React.FC<TopbarProps> = ({
   onOpenMobile,
 }) => {
-  const [ollamaStatus, setOllamaStatus] = useState<{ available: boolean; model: string }>({
-    available: true,
-    model: 'opencode/mimo-v2.5-free',
-  });
-  const [environment, setEnvironment] = useState('Local Air-Gapped Cluster');
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role: string } | null>(null);
 
   useEffect(() => {
-    async function checkHealth() {
-      try {
-        const res = await fetch('/api/ollama');
-        if (res.ok) {
-          const data = await res.json() as { health?: { available: boolean; model: string } };
-          if (data.health) setOllamaStatus(data.health);
-        }
-      } catch {
-
-      }
-    }
     async function loadUser() {
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
-          const data = await res.json() as { user?: { name: string; email: string; role: string } };
+          const data = (await res.json()) as { user?: { name: string; email: string; role: string } };
           if (data.user) setCurrentUser(data.user);
         }
       } catch {
-
+        // Handled silently
       }
     }
-    checkHealth();
     loadUser();
   }, []);
 
   return (
-    <header className="h-16 shrink-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between font-sans z-30 shadow-xs">
+    <header className="h-14 shrink-0 w-full bg-[#080D18] border-b border-[#152033] px-4 sm:px-6 flex items-center justify-between font-sans z-30 select-none">
       <div className="flex items-center gap-3">
-        {}
         {onOpenMobile && (
           <button
             onClick={onOpenMobile}
             title="Open Menu"
-            className="lg:hidden p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
           >
             <RiMenuLine className="w-5 h-5" />
           </button>
         )}
 
-        {}
-        <div className="flex items-center gap-2 bg-slate-100/90 border border-slate-200 px-3 py-1.5 rounded-xl text-xs text-slate-600 w-44 sm:w-52 lg:w-60 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
-          <RiSearchLine className="w-4 h-4 text-slate-400 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Search pages, IPs, lures..."
-            className="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full min-w-0"
-          />
-          <kbd className="hidden sm:inline text-[9px] font-mono bg-white text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">⌘K</kbd>
+        <div className="text-xs font-mono font-bold text-slate-300 hidden sm:flex items-center gap-2">
+          <span>CipherNest v1.0.0</span>
         </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        {}
-        <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono text-slate-600 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200 whitespace-nowrap">
-          <RiCpuLine className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
-          <span className="text-slate-400 font-sans">LLM:</span>
-          <span className="font-semibold text-slate-900">{ollamaStatus.model.includes('mimo') ? 'MiMo v2.5 Free' : ollamaStatus.model}</span>
-        </div>
-
-        {}
-        <div className="hidden md:flex items-center gap-1 text-xs text-slate-600 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200 max-w-[210px]">
-          <RiGlobalLine className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
-          <select
-            value={environment}
-            onChange={(e) => setEnvironment(e.target.value)}
-            className="bg-transparent text-slate-800 text-xs focus:outline-none cursor-pointer font-medium truncate"
-          >
-            <option value="Local Air-Gapped Cluster">Air-Gapped Local</option>
-            <option value="Starknet Mainnet (STRK20 Shielded)">Starknet STRK20 Shielded</option>
-            <option value="Staging VPC Decoys">Staging VPC</option>
-            <option value="Production Decoy Fleet">Production Fleet</option>
-          </select>
-        </div>
-
-        {}
-        <a href="/honeypots">
-          <Button size="sm" variant="primary" className="rounded-xl shadow-xs text-xs font-semibold">
-            <RiAddLine className="w-4 h-4" />
-            <span className="hidden sm:inline">DEPLOY DECOY</span>
-          </Button>
-        </a>
-
-        {}
-        <div className="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors">
-          <RiBellLine className="w-5 h-5" />
-          <span className="w-2 h-2 rounded-full bg-indigo-600 absolute top-2 right-2 border-2 border-white" />
-        </div>
-
-        <div className="h-6 w-[1px] bg-slate-200 hidden sm:block" />
-
-        {}
-        <div className="flex items-center gap-2.5 pl-1">
-          <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs border border-indigo-400/40">
-            <RiUser3Line className="w-4 h-4" />
+        {/* Service Status Badges */}
+        <div className="hidden xl:flex items-center gap-2">
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0C1322] border border-[#172338] text-[11px] font-mono">
+            <span className="text-slate-400 font-sans">SSH Honeypot</span>
+            <span className="text-slate-300 font-bold">2222</span>
+            <span className="text-emerald-400 font-bold text-[10px] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              ONLINE
+            </span>
           </div>
-          <div className="hidden lg:block text-left">
-            <h4 className="text-xs font-bold text-slate-900 leading-tight">
-              {currentUser ? currentUser.name : 'Security Analyst'}
+
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0C1322] border border-[#172338] text-[11px] font-mono">
+            <span className="text-slate-400 font-sans">Beacon Receiver</span>
+            <span className="text-slate-300 font-bold">8001</span>
+            <span className="text-emerald-400 font-bold text-[10px] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              ONLINE
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0C1322] border border-[#172338] text-[11px] font-mono">
+            <span className="text-slate-400 font-sans">API Server</span>
+            <span className="text-slate-300 font-bold">8000</span>
+            <span className="text-emerald-400 font-bold text-[10px] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              ONLINE
+            </span>
+          </div>
+        </div>
+
+        {/* Notifications Bell */}
+        <div className="relative p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#10192A] cursor-pointer transition-colors">
+          <RiBellLine className="w-4 h-4" />
+          <span className="px-1 py-0.1 rounded-full bg-rose-500 text-white font-bold text-[9px] absolute -top-0.5 -right-0.5 border border-[#080D18]">
+            12
+          </span>
+        </div>
+
+        <div className="h-5 w-[1px] bg-[#172338] hidden sm:block" />
+
+        {/* Operator Profile */}
+        <div className="flex items-center gap-2 pl-1 cursor-pointer">
+          <div className="w-7 h-7 rounded-full bg-purple-600/30 text-purple-300 border border-purple-500/40 font-bold text-xs flex items-center justify-center">
+            <RiUser3Line className="w-3.5 h-3.5" />
+          </div>
+          <div className="hidden sm:block text-left text-xs leading-tight">
+            <h4 className="font-semibold text-slate-200">
+              {currentUser?.name || 'Operator'}
             </h4>
-            <span className="text-[10px] text-slate-400 font-mono tracking-wider block font-semibold uppercase">
-              {currentUser ? currentUser.role : 'ANALYST'}
+            <span className="text-[10px] text-slate-500 font-mono">
+              {currentUser?.email || 'admin@ciphernest.local'}
             </span>
           </div>
         </div>
@@ -130,6 +106,3 @@ export const Topbar: React.FC<TopbarProps> = ({
     </header>
   );
 };
-
-
-
