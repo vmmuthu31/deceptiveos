@@ -65,23 +65,48 @@ function startPythonCore() {
 }
 
 function startNextServer() {
-  // Check if a complete production build exists with BUILD_ID
   const hasValidBuild = fs.existsSync(NEXT_BUILD_ID);
-  const args = hasValidBuild
-    ? ['next', 'start', '-p', String(APP_PORT)]
-    : ['next', 'dev', '-p', String(APP_PORT)];
+  
+  if (!hasValidBuild) {
+    startNextDev();
+    return;
+  }
 
-  console.log(`[CipherNest] Starting Next.js (${hasValidBuild ? 'production' : 'dev'}) on port ${APP_PORT}...`);
-
-  nextProcess = spawn('npx', args, {
+  console.log(`[CipherNest] Starting Next.js production on port ${APP_PORT}...`);
+  nextProcess = spawn('npx', ['next', 'start', '-p', String(APP_PORT)], {
     cwd: ROOT_DIR,
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, NODE_ENV: hasValidBuild ? 'production' : 'development' },
+    env: { ...process.env, NODE_ENV: 'production' },
   });
 
   nextProcess.stdout.on('data', (d) => process.stdout.write(`[Next] ${d}`));
   nextProcess.stderr.on('data', (d) => process.stderr.write(`[Next] ${d}`));
-  nextProcess.on('error', (err) => console.error('[Next.js Error]:', err.message));
+  nextProcess.on('error', (err) => {
+    console.error('[Next.js Error]:', err.message);
+    startNextDev();
+  });
+  nextProcess.on('exit', (code) => {
+    if (code !== null && code !== 0) {
+      console.warn(`[Next.js] Production start failed (code ${code}), falling back to dev server...`);
+      nextProcess = null;
+      startNextDev();
+    } else {
+      nextProcess = null;
+    }
+  });
+}
+
+function startNextDev() {
+  if (nextProcess) return;
+  console.log(`[CipherNest] Launching Next.js dev server on port ${APP_PORT}...`);
+  nextProcess = spawn('npx', ['next', 'dev', '-p', String(APP_PORT)], {
+    cwd: ROOT_DIR,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, NODE_ENV: 'development' },
+  });
+  nextProcess.stdout.on('data', (d) => process.stdout.write(`[Next] ${d}`));
+  nextProcess.stderr.on('data', (d) => process.stderr.write(`[Next] ${d}`));
+  nextProcess.on('error', (err) => console.error('[Next.js Dev Error]:', err.message));
   nextProcess.on('exit', (code) => {
     if (code !== null && code !== 0) console.error(`[Next.js] exited with code ${code}`);
     nextProcess = null;
