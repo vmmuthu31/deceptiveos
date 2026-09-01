@@ -1,0 +1,45 @@
+version: "3.9"
+
+# CipherNest Honeypot Container Fleet
+# Start with: docker compose -f docker/docker-compose.honeypot.yml up -d
+# Stop with:  docker compose -f docker/docker-compose.honeypot.yml down
+
+services:
+  honeypot-ssh-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.honeypot
+    container_name: ciphernest-honeypot-01
+    ports:
+      - "2223:22"   # Exposed on 2223 (CipherNest SSH honeypot uses 2222)
+    restart: unless-stopped
+    labels:
+      ciphernest.honeypot: "true"
+      ciphernest.type: "ssh"
+      ciphernest.name: "prod-server-01"
+
+  honeypot-ssh-02:
+    build:
+      context: .
+      dockerfile: Dockerfile.honeypot
+    container_name: ciphernest-honeypot-02
+    ports:
+      - "2224:22"
+    restart: unless-stopped
+    labels:
+      ciphernest.honeypot: "true"
+      ciphernest.type: "ssh"
+      ciphernest.name: "dev-server-02"
+
+  honeypot-web-01:
+    image: nginx:alpine
+    container_name: ciphernest-honeypot-web-01
+    ports:
+      - "8880:80"
+    volumes:
+      - ./nginx-honeypot.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    labels:
+      ciphernest.honeypot: "true"
+      ciphernest.type: "web"
+      ciphernest.name: "internal-portal-01"

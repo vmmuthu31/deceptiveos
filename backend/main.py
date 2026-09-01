@@ -4,6 +4,22 @@ Orchestrates FastAPI server (port 8000), SSH Honeypots (port 2222),
 and Steganography Beacon Receivers (port 8001).
 """
 
+# Load .env from project root before anything else reads os.environ
+import os as _os
+_env_path = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), ".env")
+try:
+    from dotenv import load_dotenv as _load_dotenv
+    _load_dotenv(_env_path, override=False)
+except ImportError:
+    # Fallback: parse .env manually
+    if _os.path.exists(_env_path):
+        for _line in open(_env_path):
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _, _v = _line.partition("=")
+                _v = _v.strip().strip('"').strip("'")
+                _os.environ.setdefault(_k.strip(), _v)
+
 import asyncio
 import http.server
 import json
@@ -130,7 +146,25 @@ async def main():
     t_beacon.start()
 
     # Run SSH honeypot (asyncio — blocks until cancelled)
-    await start_ssh_honeypot(port=HONEYPOT_PORT)
+    # Port 2222 requires root on Linux/Mac; falls back to keep API + beacon alive
+    try:
+        await start_ssh_honeypot(port=HONEYPOT_PORT)
+    except PermissionError:
+        print(f"[SSH Honeypot] ⚠️  Cannot bind port {HONEYPOT_PORT} (try: sudo python3 backend/main.py, or set HONEYPOT_PORT=2223)")
+        print("[SSH Honeypot] FastAPI + Beacon still running. Press Ctrl+C to quit.")
+        # Keep running so FastAPI + beacon threads stay alive
+        try:
+            while True:
+                await asyncio.sleep(60)
+        except asyncio.CancelledError:
+            pass
+    except Exception as e:
+        print(f"[SSH Honeypot] Error: {e} — continuing without SSH honeypot")
+        try:
+            while True:
+                await asyncio.sleep(60)
+        except asyncio.CancelledError:
+            pass
 
 
 if __name__ == "__main__":

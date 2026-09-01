@@ -36,6 +36,11 @@ export default function SettingsPage() {
   const [emailSending, setEmailSending] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ success?: boolean; message?: string } | null>(null);
 
+  // Config editor state
+  const [configForm, setConfigForm] = useState({ smtpHost: '', smtpPort: '587', smtpUser: '', smtpPass: '', smtpFrom: '', openCodeKey: '', openCodeModel: 'mimo-v2.5-free' });
+  const [configSaving, setConfigSaving] = useState(false);
+  const [configStatus, setConfigStatus] = useState<{ success?: boolean; message?: string } | null>(null);
+
   useEffect(() => {
     async function loadSettingsData() {
       try {
@@ -52,6 +57,20 @@ export default function SettingsPage() {
           if (aiData.configuredOpenCodeModel) {
             setSelectedOpenCodeModel(aiData.configuredOpenCodeModel);
           }
+        }
+
+        // Load current runtime config
+        const cfgRes = await fetch('/api/config');
+        if (cfgRes.ok) {
+          const cfgData = await cfgRes.json() as { config: Record<string, string> };
+          setConfigForm(prev => ({
+            ...prev,
+            smtpHost: cfgData.config.SMTP_HOST || '',
+            smtpPort: cfgData.config.SMTP_PORT || '587',
+            smtpUser: cfgData.config.SMTP_USER || '',
+            smtpFrom: cfgData.config.SMTP_FROM || '',
+            openCodeModel: cfgData.config.OPENCODE_MODEL || 'mimo-v2.5-free',
+          }));
         }
       } catch {
 
@@ -137,6 +156,31 @@ export default function SettingsPage() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+  };
+
+  const handleSaveConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setConfigSaving(true);
+    setConfigStatus(null);
+    const updates: Record<string, string> = {
+      SMTP_HOST: configForm.smtpHost, SMTP_PORT: configForm.smtpPort,
+      SMTP_USER: configForm.smtpUser, SMTP_FROM: configForm.smtpFrom,
+      OPENCODE_MODEL: configForm.openCodeModel,
+    };
+    if (configForm.smtpPass)   updates.SMTP_PASS      = configForm.smtpPass;
+    if (configForm.openCodeKey) updates.OPENCODE_API_KEY = configForm.openCodeKey;
+    try {
+      for (const [key, value] of Object.entries(updates)) {
+        if (!value) continue;
+        await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key, value }) });
+      }
+      setConfigStatus({ success: true, message: 'Configuration saved and persisted to .env' });
+      setConfigForm(prev => ({ ...prev, smtpPass: '', openCodeKey: '' }));
+    } catch {
+      setConfigStatus({ success: false, message: 'Failed to save configuration' });
+    } finally {
+      setConfigSaving(false);
+    }
   };
 
   return (
@@ -324,6 +368,86 @@ export default function SettingsPage() {
               <span>{exporting ? 'Generating Report...' : 'SOC 2 Evidence Report'}</span>
             </Button>
           </div>
+        </Card>
+
+        {/* Runtime Configuration Editor */}
+        <Card className="flex flex-col hover:shadow-md transition-all md:col-span-2">
+          <CardHeader>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                <RiSettings4Line className="w-4 h-4" />
+              </div>
+              <CardTitle className="font-bold text-slate-900">Runtime Configuration</CardTitle>
+            </div>
+            <CardDescription>Update SMTP credentials, OpenCode API key, and model without restarting. Changes persist to .env automatically.</CardDescription>
+          </CardHeader>
+
+          <form onSubmit={handleSaveConfig} className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 my-3 space-y-4 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase mb-2">SMTP Configuration</p>
+                <div className="space-y-2">
+                  {[
+                    { label: 'SMTP Host', key: 'smtpHost', placeholder: 'smtp.gmail.com' },
+                    { label: 'SMTP Port', key: 'smtpPort', placeholder: '587' },
+                    { label: 'SMTP User', key: 'smtpUser', placeholder: 'you@gmail.com' },
+                    { label: 'SMTP Password (leave blank to keep current)', key: 'smtpPass', placeholder: '••••••••', type: 'password' },
+                    { label: 'From Address', key: 'smtpFrom', placeholder: 'CipherNest <you@gmail.com>' },
+                  ].map(({ label, key, placeholder, type }) => (
+                    <div key={key}>
+                      <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">{label}</label>
+                      <input type={type || 'text'} placeholder={placeholder}
+                        value={configForm[key as keyof typeof configForm]}
+                        onChange={e => setConfigForm(prev => ({ ...prev, [key]: e.target.value }))}
+                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono text-slate-900 focus:outline-none focus:border-indigo-400"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase mb-2">OpenCode AI Configuration</p>
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">OpenCode API Key (leave blank to keep current)</label>
+                    <input type="password" placeholder="sk-••••••••••••"
+                      value={configForm.openCodeKey}
+                      onChange={e => setConfigForm(prev => ({ ...prev, openCodeKey: e.target.value }))}
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono text-slate-900 focus:outline-none focus:border-indigo-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Active Model</label>
+                    <select value={configForm.openCodeModel}
+                      onChange={e => setConfigForm(prev => ({ ...prev, openCodeModel: e.target.value }))}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-mono text-slate-900 focus:outline-none focus:border-indigo-400"
+                    >
+                      <option value="mimo-v2.5-free">MiMo-V2.5 Free</option>
+                      <option value="hy3-free">Hy3 Free</option>
+                      <option value="laguna-s-2.1-free">Laguna S 2.1 Free</option>
+                      <option value="nemotron-3-ultra-free">Nemotron 3 Ultra Free</option>
+                      <option value="nemotron-3.5-lightning-free">Nemotron 3.5 Lightning Free</option>
+                      <option value="deepseek-v4-flash-free">DeepSeek V4 Flash Free</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {configStatus && (
+              <div className={`p-2 rounded-lg text-[11px] font-mono font-medium ${configStatus.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                {configStatus.message}
+              </div>
+            )}
+
+            <div className="pt-2 border-t border-slate-200">
+              <Button type="submit" size="sm" variant="primary" disabled={configSaving} className="rounded-xl font-semibold">
+                <RiCheckDoubleLine className="w-3.5 h-3.5" />
+                <span>{configSaving ? 'Saving...' : 'Save Configuration'}</span>
+              </Button>
+            </div>
+          </form>
         </Card>
       </div>
     </div>

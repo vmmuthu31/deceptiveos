@@ -22,5 +22,8 @@ psutil>=5.9.0
 # Email validation
 pydantic[email]>=2.0.0
 
+# .env loading
+python-dotenv>=1.0.0
+
 # HTTP (optional richer client)
 requests>=2.32.0

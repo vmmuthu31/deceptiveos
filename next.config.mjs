@@ -2,14 +2,20 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // Proxy all /api/* requests to the Python FastAPI server
+  /**
+   * beforeFiles rewrites run BEFORE Next.js checks app/api/ route handlers.
+   * This ensures all /api/* traffic goes to the Python FastAPI server (port 8000)
+   * even though the old TypeScript route files still exist on disk.
+   */
   async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
-      },
-    ];
+    return {
+      beforeFiles: [
+        {
+          source: '/api/:path*',
+          destination: 'http://localhost:8000/api/:path*',
+        },
+      ],
+    };
   },
 };
 

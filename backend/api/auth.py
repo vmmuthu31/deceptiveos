@@ -36,6 +36,7 @@ def _init_pg():
         _ensure_tables()
     except Exception as e:
         print(f"[Auth] PostgreSQL init failed (using in-memory fallback): {e}")
+        print("[Auth] ⚠️  WARNING: Users registered now will be LOST on restart. Set DATABASE_URL in .env for persistence.")
         _db_pool = None
 
 def _ensure_tables():

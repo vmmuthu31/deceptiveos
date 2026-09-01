@@ -1,7 +1,7 @@
 {
   "name": "ciphernest",
   "version": "0.2.0",
-  "description": "Adversarial AI Defense Engine — AI-Native Cyber Deception Platform",
+  "description": "Adversarial AI Defense Engine \u2014 AI-Native Cyber Deception Platform",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -13,7 +13,10 @@
     "lint": "tsc --noEmit && eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf .next node_modules"
+    "clean": "rm -rf .next node_modules",
+    "dev:api": "python3 backend/main.py",
+    "dev:all": "concurrently -n API,NEXT -c cyan,magenta \"npm run dev:api\" \"npm run dev\"",
+    "start:all": "npm run dev:all"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

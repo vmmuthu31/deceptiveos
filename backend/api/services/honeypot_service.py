@@ -30,7 +30,9 @@ def create_honeypot(data: dict) -> dict:
     try:
         subprocess.run(
             ['docker','run','-d','--name',f'cipher-{container_id}',
-             '-p',f'{data["port"]}:{data["port"]}','alpine','sleep','infinity'],
+             '-p',f'{data["port"]}:{data["port"]}',
+             '--label','ciphernest.honeypot=true',
+             'ciphernest-honeypot-01'],  # built from docker/Dockerfile.honeypot
             timeout=4, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
         started = True

@@ -1,0 +1,43 @@
+# CipherNest SSH Honeypot Container
+# Lightweight Ubuntu with OpenSSH — presents a convincing fake shell to attackers
+FROM ubuntu:22.04
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        openssh-server \
+        curl wget net-tools iputils-ping \
+        vim nano less htop \
+        python3 python3-pip git \
+        sudo && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create a believable fake sysadmin user
+RUN useradd -m -s /bin/bash devops && \
+    echo "devops:password123" | chpasswd && \
+    echo "devops ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Configure SSH to allow password auth and root login (intentionally insecure — honeypot)
+RUN mkdir -p /var/run/sshd && \
+    sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config && \
+    echo "Banner /etc/ssh/banner.txt" >> /etc/ssh/sshd_config
+
+# Fake corporate SSH banner
+RUN echo "**********************************************************************\n\
+* Acme Corp Internal Systems — Authorized Access Only                        *\n\
+* Unauthorized access is prohibited and will be prosecuted.                  *\n\
+* All activity is monitored and logged.                                       *\n\
+**********************************************************************\n" \
+    > /etc/ssh/banner.txt
+
+# Fake filesystem to look like a real corporate server
+RUN mkdir -p /opt/deploy /var/app/config /home/devops/.ssh && \
+    echo '{"db_host":"db.internal","db_pass":"Pr0d_S3cr3t!","api_key":"ak-live-XXXXXXXXXXX"}' \
+        > /opt/deploy/config.json && \
+    echo "PROD_DB_URL=postgresql://admin:Pr0d_S3cr3t!@db.internal:5432/appdb" \
+        > /var/app/config/.env && \
+    chown -R devops:devops /home/devops
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D", "-e"]

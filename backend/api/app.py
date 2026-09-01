@@ -582,6 +582,71 @@ async def post_ai_ssh(body: AiSshBody, request: Request):
 
 # ─────────────────────── HEALTH ───────────────────────
 
+
+# ─── Runtime config (write SMTP / API keys from UI) ──────────────────────────
+
+class ConfigBody(BaseModel):
+    key: str
+    value: str
+
+@app.get("/api/config")
+async def get_config():
+    """Return non-secret config keys so the UI can show current state."""
+    return {
+        "success": True,
+        "config": {
+            "SMTP_HOST":   os.environ.get("SMTP_HOST", ""),
+            "SMTP_PORT":   os.environ.get("SMTP_PORT", "587"),
+            "SMTP_USER":   os.environ.get("SMTP_USER", ""),
+            "SMTP_FROM":   os.environ.get("SMTP_FROM", ""),
+            "OPENCODE_MODEL": os.environ.get("OPENCODE_MODEL", "mimo-v2.5-free"),
+            "HAS_OPENCODE_KEY": bool(os.environ.get("OPENCODE_API_KEY")),
+            "HAS_SMTP_PASS":    bool(os.environ.get("SMTP_PASS")),
+            "HAS_DB":           bool(os.environ.get("DATABASE_URL")),
+        }
+    }
+
+@app.post("/api/config")
+async def set_config(body: ConfigBody):
+    """
+    Write a runtime config key into os.environ AND persist it to .env so
+    it survives restarts. Only whitelisted keys are accepted.
+    """
+    ALLOWED = {
+        "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM",
+        "OPENCODE_API_KEY", "OPENCODE_MODEL", "DATABASE_URL", "JWT_SECRET",
+        "ALERT_EMAIL",
+    }
+    if body.key not in ALLOWED:
+        raise HTTPException(status_code=400, detail=f"Key '{body.key}' is not configurable via API")
+
+    # Set in current process immediately
+    os.environ[body.key] = body.value
+
+    # Persist to .env file
+    env_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        ".env"
+    )
+    try:
+        lines = []
+        found = False
+        if os.path.exists(env_path):
+            with open(env_path) as f:
+                for line in f:
+                    if line.startswith(f"{body.key}=") or line.startswith(f'{body.key}="'):
+                        lines.append(f'{body.key}="{body.value}"\n')
+                        found = True
+                    else:
+                        lines.append(line)
+        if not found:
+            lines.append(f'\n{body.key}="{body.value}"\n')
+        with open(env_path, "w") as f:
+            f.writelines(lines)
+        return {"success": True, "message": f"{body.key} updated and persisted to .env"}
+    except Exception as e:
+        return {"success": True, "message": f"{body.key} set in memory (could not write .env: {e})"}
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "CipherNest Python API", "timestamp": _now()}
