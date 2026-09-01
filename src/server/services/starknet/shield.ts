@@ -45,7 +45,7 @@ export async function shieldStrk(
       autoSelectNotes: 'naive',
     })
     .surplusTo(config.accountAddress)
-    .with(STRK_TOKEN_ADDRESS, (t) =>
+    .with(STRK_TOKEN_ADDRESS, (t: any) =>
       t.deposit({ amount, recipient: shieldRecipient }),
     );
 

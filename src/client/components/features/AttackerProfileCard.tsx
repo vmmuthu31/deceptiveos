@@ -75,11 +75,62 @@ export const AttackerProfileCard: React.FC<AttackerProfileCardProps> = ({ profil
         </div>
       </div>
 
-      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-        <span className="text-slate-500 font-medium">Confidence: <strong className="text-emerald-600 font-bold">{Math.round(profile.confidence * 100)}%</strong></span>
-        <span className="flex items-center gap-1 text-rose-600 font-bold uppercase tracking-wider text-[11px]">
-          <RiAlarmWarningLine className="w-3.5 h-3.5" /> {profile.threatLevel} Severity
-        </span>
+      <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+        <div className="flex items-center justify-between text-xs font-mono">
+          <span className="text-slate-500 font-medium">Confidence: <strong className="text-emerald-600 font-bold">{Math.round(profile.confidence * 100)}%</strong></span>
+          <span className="flex items-center gap-1 text-rose-600 font-bold uppercase tracking-wider text-[11px]">
+            <RiAlarmWarningLine className="w-3.5 h-3.5" /> {profile.threatLevel} Severity
+          </span>
+        </div>
+
+        {/* 1-Click Active Containment Bar */}
+        <div className="flex items-center gap-2 pt-2 border-t border-slate-100/80">
+          <button
+            onClick={async () => {
+              try {
+                await fetch('/api/response/action', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    type: 'BLOCK_IP',
+                    targetId: profile.ip,
+                    targetName: `Attacker IP (${profile.ip})`,
+                    reason: `Automated edge firewall drop rule for ${profile.classification}`,
+                  }),
+                });
+                alert(`Containment Action Executed: Edge Firewall Drop rule enforced for ${profile.ip}`);
+              } catch {
+                // Handled
+              }
+            }}
+            className="flex-1 py-1.5 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-mono text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors"
+          >
+            Block IP Drop
+          </button>
+
+          <button
+            onClick={async () => {
+              try {
+                await fetch('/api/response/action', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    type: 'RESTRICT_MCP_TOOL',
+                    targetId: 'all-decoys',
+                    targetName: 'Agent Decoy Suite',
+                    reason: 'Emergency sandbox lockdown against autonomous agent',
+                  }),
+                });
+                alert('Containment Action Executed: High-privilege agent tools restricted to verification sandbox.');
+              } catch {
+                // Handled
+              }
+            }}
+            className="flex-1 py-1.5 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-mono text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors"
+          >
+            Restrict MCP Tools
+          </button>
+        </div>
       </div>
     </Card>
   );

@@ -35,7 +35,7 @@ export async function unshieldStrk(
       autoSelectNotes: 'naive',
     })
     .surplusTo(config.accountAddress)
-    .with(STRK_TOKEN_ADDRESS, (t) =>
+    .with(STRK_TOKEN_ADDRESS, (t: any) =>
       t.withdraw({ amount, recipient: withdrawRecipient }),
     );
 

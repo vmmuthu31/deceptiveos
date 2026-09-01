@@ -1,4 +1,14 @@
-import { AttackerProfile, BeaconEvent, HoneypotProfile, LureDocument, SessionEvent } from '@/shared/types';
+import {
+  AttackerProfile,
+  BeaconEvent,
+  ContainmentAction,
+  HoneypotProfile,
+  LureDocument,
+  McpDecoyTool,
+  McpInvocationEvent,
+  PromptInjectionCanary,
+  SessionEvent,
+} from '@/shared/types';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -20,6 +30,10 @@ interface DatabaseSchema {
   beacons: BeaconEvent[];
   lureContents: Record<string, string>;
   auditLedger: AuditBlock[];
+  mcpDecoys?: McpDecoyTool[];
+  mcpInvocations?: McpInvocationEvent[];
+  promptCanaries?: PromptInjectionCanary[];
+  containmentActions?: ContainmentAction[];
   ghostBounties?: import('@/shared/types').GhostBountyItem[];
   treasury?: import('@/shared/types').PrivateTreasuryState;
   threatNetwork?: import('@/shared/types').AnonymizedThreatNode[];

@@ -14,6 +14,7 @@ import {
   RiFingerprintLine,
   RiLogoutBoxRLine,
   RiNodeTree,
+  RiRobot2Line,
   RiSafe2Line,
   RiSettings4Line,
   RiShieldCrossLine,
@@ -38,6 +39,7 @@ const navSections: NavSection[] = [
     title: 'INTELLIGENCE',
     items: [
       { label: 'Attacker DNA', href: '/alerts', icon: RiAlertLine },
+      { label: 'AI & MCP Decoys', href: '/mcp-deception', icon: RiRobot2Line },
       { label: 'Lure Studio', href: '/lures', icon: RiFileShield2Line },
     ],
   },

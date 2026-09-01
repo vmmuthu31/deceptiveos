@@ -27,4 +27,8 @@ export const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement
   return <p className={cn('text-xs text-slate-500 font-normal leading-relaxed', className)} {...props}>{children}</p>;
 };
 
+export const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ children, className, ...props }) => {
+  return <div className={cn('space-y-3', className)} {...props}>{children}</div>;
+};
+
 

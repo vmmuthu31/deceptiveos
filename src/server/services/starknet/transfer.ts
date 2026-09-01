@@ -38,7 +38,7 @@ export async function privateTransfer(
       autoSelectNotes: 'naive',
     })
     .surplusTo(config.accountAddress)
-    .with(STRK_TOKEN_ADDRESS, (t) =>
+    .with(STRK_TOKEN_ADDRESS, (t: any) =>
       t.transfer({ recipient, amount }),
     );
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { AttackGraphVisualizer } from '@/client/components/features/AttackGraphVisualizer';
 import { EventFeed } from '@/client/components/features/EventFeed';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/Card';
 import { SessionEvent } from '@/shared/types';
@@ -59,6 +60,9 @@ export default function EventsPage() {
           />
         </div>
       </div>
+
+      {/* Correlated Multi-Stage Attack Graph */}
+      <AttackGraphVisualizer />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 space-y-4">

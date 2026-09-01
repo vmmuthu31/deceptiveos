@@ -161,3 +161,89 @@ export interface AnonymizedThreatNode {
   lastActiveAt: string;
 }
 
+export type McpCategory = 'database' | 'admin' | 'finance' | 'cloud' | 'custom';
+
+export interface McpDecoyTool {
+  id: string;
+  name: string;
+  description: string;
+  category: McpCategory;
+  canaryToken: string;
+  parametersSchema: Record<string, unknown>;
+  triggerCount: number;
+  lastTriggeredAt?: string;
+  createdAt: string;
+  enabled: boolean;
+}
+
+export interface McpInvocationEvent {
+  id: string;
+  toolId: string;
+  toolName: string;
+  callerIp: string;
+  agentPersona: string;
+  promptSnippet: string;
+  argumentsReceived: Record<string, unknown>;
+  timestamp: string;
+  riskScore: number;
+  payloadSanitized: boolean;
+}
+
+export interface PromptInjectionCanary {
+  id: string;
+  canaryToken: string;
+  decoySecret: string;
+  description: string;
+  exfiltrationCount: number;
+  lastExfiltratedAt?: string;
+  createdAt: string;
+}
+
+export type GraphNodeType = 'ATTACKER' | 'DECOY_HONEYPOT' | 'HONEYTOKEN' | 'MCP_DECOY' | 'REAL_SERVER' | 'DATABASE';
+
+export interface AttackGraphNode {
+  id: string;
+  label: string;
+  type: GraphNodeType;
+  isDeceptive: boolean;
+  threatLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
+  timestamp?: string;
+  details?: string;
+}
+
+export interface AttackGraphLink {
+  source: string;
+  target: string;
+  action: string;
+  stage: 'Reconnaissance' | 'Initial Access' | 'Tool Abuse' | 'Exfiltration' | 'Lateral Movement';
+  timestamp: string;
+}
+
+export interface AttackCampaign {
+  id: string;
+  attackerIp: string;
+  attackerDna: string;
+  classification: AttackerClass;
+  overallRiskScore: number;
+  stagesCompleted: string[];
+  nodes: AttackGraphNode[];
+  links: AttackGraphLink[];
+  status: 'ACTIVE' | 'CONTAINED' | 'MONITORING';
+  firstSeenAt: string;
+  lastActivityAt: string;
+}
+
+export type ContainmentType = 'BLOCK_IP' | 'REVOKE_HONEYTOKEN' | 'RESTRICT_MCP_TOOL' | 'ISOLATE_DECOY' | 'EXPORT_INCIDENT';
+
+export interface ContainmentAction {
+  id: string;
+  type: ContainmentType;
+  targetId: string;
+  targetName: string;
+  status: 'EXECUTED' | 'FAILED';
+  executedBy: string;
+  timestamp: string;
+  auditBlockHash: string;
+  details: string;
+}
+
