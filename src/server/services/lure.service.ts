@@ -54,7 +54,7 @@ export async function createLureDocument(data: {
     <pre>${rawContent}</pre>
   </div>
   <!-- Steganographic Pixel Canary Tracker -->
-  <img src="http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr}" width="1" height="1" style="display:none;" alt="pixel-canary" />
+   <img src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/lures/beacon?watermarkToken=${tokenStr}" width="1" height="1" style="display:none;" alt="pixel-canary" />
 </body>
 </html>`;
   } else if (data.docType === 'JSON') {
@@ -64,7 +64,7 @@ export async function createLureDocument(data: {
         industry: data.industry,
         stego_signature: watermark.stegoWhitespaceSignature,
         security_token: watermark.metadataTag,
-        pixel_canary_beacon: `http://localhost:3000/api/lures/beacon?watermarkToken=${tokenStr}`,
+        pixel_canary_beacon: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/lures/beacon?watermarkToken=${tokenStr}`,
         config: {
           database_url: `postgresql://admin:${tokenStr}@db.${data.targetCompany.toLowerCase().replace(/\s+/g, '')}.local:5432/production`,
           api_key: `sk_live_${tokenStr}_ciphernest`,
@@ -124,7 +124,7 @@ export async function recordBeaconHit(watermarkToken: string, sourceIp?: string,
     lureId: lure.id,
     documentTitle: lure.title,
     watermarkToken,
-    sourceIp: sourceIp || '198.51.100.42',
+    sourceIp: sourceIp || '0.0.0.0',
     location: 'External Host (Beacon Received)',
     userAgent: userAgent || 'Mozilla/5.0 (Automated Document Parser)',
     timestamp: new Date().toISOString(),

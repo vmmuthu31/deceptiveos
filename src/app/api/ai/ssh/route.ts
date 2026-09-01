@@ -1,39 +1,41 @@
 import { appendAuditBlock, readDb, writeDb } from '@/server/db/database';
 import { classifyAttackerSession, generateHoneypotSSHResponse } from '@/server/services/ai.service';
+import { calculateShannonEntropy } from '@/shared/utils/formatters';
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { command, history = [], honeypotId = 'hp-cowrie-01' } = await req.json();
+    const { command, history = [], honeypotId = 'hp-cowrie-01', sessionId } = await req.json();
 
     if (!command || typeof command !== 'string') {
       return NextResponse.json({ success: false, error: 'Command is required' }, { status: 400 });
     }
 
+    const effectiveSessionId = sessionId || `sess-${crypto.randomBytes(4).toString('hex')}`;
 
     const { output, delayMs } = await generateHoneypotSSHResponse(command, history);
-
 
     const fullHistory = [...history, command];
     const classification = await classifyAttackerSession(fullHistory);
 
-
     const db = readDb();
-    const sessionId = 'sess-interactive-demo';
     const timestamp = new Date().toISOString();
-    const entropyScore = Number((Math.random() * 2 + 3).toFixed(2));
+    const entropyScore = calculateShannonEntropy(command);
     const dnaHash = crypto.createHash('sha256').update(fullHistory.join(';')).digest('hex').substring(0, 8).toUpperCase();
 
-    let event = db.events.find((e) => e.sessionId === sessionId);
+    const forwarded = req.headers.get('x-forwarded-for');
+    const attackerIp = forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+
+    let event = db.events.find((e) => e.sessionId === effectiveSessionId);
     if (!event) {
       event = {
         id: `evt-${Date.now().toString(36)}`,
-        sessionId,
+        sessionId: effectiveSessionId,
         honeypotId,
         honeypotName: 'SSH Core Decoy (Interactive Sandbox)',
-        attackerIp: '194.26.29.112',
-        location: 'Bucharest, Romania (TOR Exit Node)',
+        attackerIp,
+        location: 'Local Session',
         kind: 'command_exec',
         payload: command,
         timestamp,
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
 
     event.commands.push({
       id: `cmd-${Date.now().toString(36)}`,
-      sessionId,
+      sessionId: effectiveSessionId,
       honeypotId,
       timestamp,
       command,
@@ -55,7 +57,7 @@ export async function POST(req: Request) {
 
     writeDb(db);
 
-    appendAuditBlock('INTERACTIVE_COMMAND_EXECUTIVE', {
+    appendAuditBlock('INTERACTIVE_COMMAND_EXECUTED', {
       command,
       outputSnippet: output.substring(0, 40),
       delayMs,
